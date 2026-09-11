@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <link href="//unpkg.com/swagger-ui-dist@3/swagger-ui.css" rel="stylesheet" type="text/css">
+<body>
+
+<div id="lab1-docs" />
+
+<script src="//unpkg.com/swagger-ui-dist@3/swagger-ui-bundle.js"></script>
+<script>
+
+    window.onload = function () {
+
+        const ui = SwaggerUIBundle({
+            url: "spec.yaml",
+            dom_id: "#lab1-docs",
+            deepLinking: true,
+        })
+
+    }
+
+</script>
+
+</body>
+
+</html>
