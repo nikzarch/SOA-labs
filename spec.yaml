@@ -203,13 +203,7 @@ paths:
 
       responses:
         '204':
-          description: Город успешно удален
-
-        '400':
-          $ref: '#/components/responses/BadRequest'
-
-        '404':
-          $ref: '#/components/responses/NotFound'
+          description: Город удален или уже отсутствует
 
 
   /cities/min-standard-of-living:
