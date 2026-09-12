@@ -15,7 +15,7 @@ paths:
         - $ref: '#/components/parameters/Page'
         - $ref: '#/components/parameters/PageSize'
         - $ref: '#/components/parameters/SortBy'
-        - $ref: '#/components/parameters/OrderBy'
+        - $ref: '#/components/parameters/OrderBy' # несколько полей фильтрации и сортировки, фильтры различные типо больше меньше равно
 
         - name: id
           in: query
@@ -31,7 +31,7 @@ paths:
           schema:
             type: string
 
-        - name: coordinates.x
+        - name: coordinates.x  # nullable = false
           in: query
           required: false
           schema:
@@ -204,13 +204,15 @@ paths:
       responses:
         '204':
           description: Город удален или уже отсутствует
+        '400':
+          description: Ошибка валидации
 
 
   /cities/min-standard-of-living:
     get:
       tags:
         - Special operations
-      summary: Получить город с минимальным уровнем жизни
+      summary: Получить город с минимальным уровнем жизни # возвращать если несколько то мин айди
       description: |
         Возвращает любой город, значение standardOfLiving которого
         является минимальным (индекс значения в енаме)
@@ -255,7 +257,7 @@ paths:
                 $ref: '#/components/schemas/Error'
 
 
-  /cities/by-name:
+  /cities/by-name: # убрать by
     get:
       tags:
         - Special operations
@@ -289,7 +291,7 @@ paths:
   /route/calculate/to-largest:
     get:
       tags:
-        - Routes
+        - Routes # отдельная страничка сваггера
       summary: Рассчитать длину маршрута до крупнейшего города
       description: |
         Получает из первого вебсервиса город с максимальной площадью
@@ -592,12 +594,14 @@ components:
         x:
           type: integer
           format: int32
+          nullable: false
 
         y:
           type: number
           format: double
           minimum: -594
           exclusiveMinimum: true
+          nullable: false
 
 
 
@@ -691,8 +695,9 @@ components:
     Error:
       type: object
       required:
-        - code
-        - message
+        - code # убрать
+        - message # написать примеры ошибок, все которые могут быть
+        - timestamp
       properties:
 
         code:
@@ -700,6 +705,11 @@ components:
 
         message:
           type: string
+
+        timestamp:
+          type: string
+          format: date-time # сделать не в UTC а под класс джавы
+          # PATCH для обновления объекта
 
   responses:
 
