@@ -113,9 +113,66 @@ paths:
               schema:
                 $ref: '#/components/schemas/CityPage'
 
-        '400':
-          $ref: '#/components/responses/BadRequest'
 
+        '400':
+          description: Неккоректный параметр фильтрации
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalidCoordinatesX:
+                  summary: Некорректный coordinates.x
+                  value:
+                    message: "Параметр coordinates.x должен
+                                     быть целым числом int32"
+                    timestamp: "2026-09-12T12:00:00+03:00"
+                invalidCoordinatesY:
+                  summary: Некорректный coordinates.y
+                  value:
+                    message: "Параметр coordinates.y должен
+                                   быть числом больше -594"
+                    timestamp: "2026-09-12T12:00:00+03:00"
+                invalidName:
+                  summary: Некорректный name
+                  value:
+                    message: "Параметр name не должен быть null"
+                    timestamp: "2026-09-12T12:00:00+03:00"
+                invalidCreationDate:
+                  summary: Некорректный creationDate
+                  value:
+                    message: "Параметр creationDate не должен быть null"
+                    timestamp: "2026-09-12T12:00:00+03:00"
+                invalidArea:
+                  summary: Некорректный area
+                  value:
+                    message: "Параметр area должен быть больше 0"
+                    timestamp: "2026-09-12T12:00:00+03:00"
+                invalidPopulation:
+                  summary: Некорректный population
+                  value:
+                    message: "Параметр population должен быть больше 0"
+                    timestamp: "2026-09-12T12:00:00+03:00"
+                invalidСlimate:
+                  summary: Некорректный climate
+                  value:
+                    message: "Параметр climate не должен быть null"
+                    timestamp: "2026-09-12T12:00:00+03:00"
+                invalidGovernment:
+                  summary: Некорректный government
+                  value:
+                    message: "Параметр government не должен быть null"
+                    timestamp: "2026-09-12T12:00:00+03:00"
+                invalidStandardOfLiving:
+                  summary: Некорректный standardOfLiving
+                  value:
+                    message: "Параметр standardOfLiving не должен быть null"
+                    timestamp: "2026-09-12T12:00:00+03:00"
+                invalidHuman:
+                  summary: Некорректный governor.age
+                  value:
+                    message: "Параметр governor.age должен быть больше 0"
+                    timestamp: "2026-09-12T12:00:00+03:00"
     post:
       tags:
         - Cities
@@ -138,7 +195,64 @@ paths:
                 $ref: '#/components/schemas/City'
 
         '400':
-          $ref: '#/components/responses/ValidationError'
+          description: Неккоректный параметр объекта
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalidCoordinatesX:
+                  summary: Некорректный coordinates.x
+                  value:
+                    message: "Параметр coordinates.x должен
+                                     быть целым числом int32"
+                    timestamp: "2026-09-12T12:00:00+03:00"
+                invalidCoordinatesY:
+                  summary: Некорректный coordinates.y
+                  value:
+                    message: "Параметр coordinates.y должен
+                                   быть числом больше -594"
+                    timestamp: "2026-09-12T12:00:00+03:00"
+                invalidName:
+                  summary: Некорректный name
+                  value:
+                    message: "Параметр name не должен быть null"
+                    timestamp: "2026-09-12T12:00:00+03:00"
+                invalidCreationDate:
+                  summary: Некорректный creationDate
+                  value:
+                    message: "Параметр creationDate не должен быть null"
+                    timestamp: "2026-09-12T12:00:00+03:00"
+                invalidArea:
+                  summary: Некорректный area
+                  value:
+                    message: "Параметр area должен быть больше 0"
+                    timestamp: "2026-09-12T12:00:00+03:00"
+                invalidPopulation:
+                  summary: Некорректный population
+                  value:
+                    message: "Параметр population должен быть больше 0"
+                    timestamp: "2026-09-12T12:00:00+03:00"
+                invalidСlimate:
+                  summary: Некорректный climate
+                  value:
+                    message: "Параметр climate не должен быть null"
+                    timestamp: "2026-09-12T12:00:00+03:00"
+                invalidGovernment:
+                  summary: Некорректный government
+                  value:
+                    message: "Параметр government не должен быть null"
+                    timestamp: "2026-09-12T12:00:00+03:00"
+                invalidStandardOfLiving:
+                  summary: Некорректный standardOfLiving
+                  value:
+                    message: "Параметр standardOfLiving не должен быть null"
+                    timestamp: "2026-09-12T12:00:00+03:00"
+                invalidHuman:
+                  summary: Некорректный governor.age
+                  value:
+                    message: "Параметр governor.age должен быть больше 0"
+                    timestamp: "2026-09-12T12:00:00+03:00"
 
   /cities/{id}:
     get:
