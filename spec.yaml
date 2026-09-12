@@ -31,10 +31,11 @@ paths:
           schema:
             type: string
 
-        - name: coordinates.x  # nullable = false
+        - name: coordinates.x
           in: query
           required: false
           schema:
+            nullable: false
             type: integer
             format: int32
 
@@ -53,6 +54,7 @@ paths:
           schema:
             type: string
             format: date-time
+            example: "2026-09-12T15:30:45"
 
         - name: area
           in: query
@@ -162,7 +164,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-    put:
+    patch:
       tags:
         - Cities
       summary: Обновить город
@@ -205,7 +207,8 @@ paths:
         '204':
           description: Город удален или уже отсутствует
         '400':
-          description: Ошибка валидации
+          $ref: '#/components/responses/ValidationError'
+
 
 
   /cities/min-standard-of-living:
@@ -216,6 +219,7 @@ paths:
       description: |
         Возвращает любой город, значение standardOfLiving которого
         является минимальным (индекс значения в енаме)
+        Если городов подходящих несколько, то возвращается с минимальным идентификатором
       operationId: getCityWithMinStandardOfLiving
 
       responses:
@@ -257,7 +261,7 @@ paths:
                 $ref: '#/components/schemas/Error'
 
 
-  /cities/by-name: # убрать by
+  /cities/name:
     get:
       tags:
         - Special operations
@@ -452,6 +456,7 @@ components:
           type: string
           format: date-time
           readOnly: true
+          example: "2026-09-12T15:30:45"
           description: |
             Дата и время создания города.
         area:
@@ -695,8 +700,7 @@ components:
     Error:
       type: object
       required:
-        - code # убрать
-        - message # написать примеры ошибок, все которые могут быть
+        - message
         - timestamp
       properties:
 
@@ -708,8 +712,8 @@ components:
 
         timestamp:
           type: string
-          format: date-time # сделать не в UTC а под класс джавы
-          # PATCH для обновления объекта
+          format: date-time
+          example: "2026-09-12T15:30:45"
 
   responses:
 

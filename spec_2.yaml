@@ -1,0 +1,117 @@
+openapi: 3.0.0
+info:
+  title: lab1
+  description: lab1
+  version: 1.0.0
+paths:
+  /route/calculate/to-largest:
+    get:
+      tags:
+        - Routes
+      summary: Рассчитать длину маршрута до крупнейшего города
+      description: |
+        Получает из первого вебсервиса город с максимальной площадью
+        и рассчитывает длину маршрута до него и возвращает её
+      operationId: calculateRouteToLargest
+
+      responses:
+        '200':
+          description: Длина маршрута
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RouteLength'
+
+        '404':
+          description: В коллекции отсутствуют города
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+        '502':
+          description: Первый веб-сервис недоступен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+
+  /route/calculate/to-newest:
+    get:
+      tags:
+        - Routes
+      summary: Рассчитать длину маршрута до новейшего города
+      description: |
+        Получает из первого вебсервиса город созданный позже остальных,
+        и рассчитывает длину маршрута от точки (0,0) до этого города.
+      operationId: calculateRouteToNewest
+
+      responses:
+        '200':
+          description: Длина маршрута
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RouteLength'
+
+        '404':
+          description: В коллекции отсутствуют города
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+        '502':
+          description: Первый веб-сервис недоступен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    RouteLength:
+      type: object
+      required:
+        - length
+      properties:
+        length:
+          type: number
+          format: double
+          minimum: 0
+          description: Длина маршрута
+
+
+    Error:
+      type: object
+      required:
+        - message
+        - timestamp
+      properties:
+
+        code:
+          type: integer
+
+        message:
+          type: string
+
+        timestamp:
+          type: string
+          format: date-time # сделать не в UTC а под класс джавы
+          readOnly: true
+          example: "2026-09-12T15:30:45"
+  responses:
+
+    BadRequest:
+      description: Некорректные параметры запроса
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    ValidationError:
+      description: Ошибка валидации параметров запроса
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
