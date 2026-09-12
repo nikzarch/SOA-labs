@@ -13,7 +13,41 @@ paths:
       parameters:
         - $ref: '#/components/parameters/Page'
         - $ref: '#/components/parameters/PageSize'
-        - $ref: '#/components/parameters/Filter'
+        - $ref: '#/components/parameters/FilterId'
+        - $ref: '#/components/parameters/FilterIdType'
+        - $ref: '#/components/parameters/FilterName'
+        - $ref: '#/components/parameters/FilterCoordinatesX'
+        - $ref: '#/components/parameters/FilterCoordinatesXType'
+        - $ref: '#/components/parameters/FilterCoordinatesY'
+        - $ref: '#/components/parameters/FilterCoordinatesYType'
+        - $ref: '#/components/parameters/FilterCreationDate'
+        - $ref: '#/components/parameters/FilterCreationDateType'
+        - $ref: '#/components/parameters/FilterArea'
+        - $ref: '#/components/parameters/FilterAreaType'
+        - $ref: '#/components/parameters/FilterPopulation'
+        - $ref: '#/components/parameters/FilterPopulationType'
+        - $ref: '#/components/parameters/FilterMetersAboveSeaLevel'
+        - $ref: '#/components/parameters/FilterMetersAboveSeaLevelType'
+        - $ref: '#/components/parameters/FilterClimate'
+        - $ref: '#/components/parameters/FilterClimateType'
+        - $ref: '#/components/parameters/FilterGovernment'
+        - $ref: '#/components/parameters/FilterGovernmentType'
+        - $ref: '#/components/parameters/FilterStandardOfLiving'
+        - $ref: '#/components/parameters/FilterStandardOfLivingType'
+        - $ref: '#/components/parameters/FilterGovernorAge'
+        - $ref: '#/components/parameters/FilterGovernorAgeType'
+        - $ref: '#/components/parameters/OrderedById'
+        - $ref: '#/components/parameters/OrderedByName'
+        - $ref: '#/components/parameters/OrderedByCoordinatesX'
+        - $ref: '#/components/parameters/OrderedByCoordinatesY'
+        - $ref: '#/components/parameters/OrderedByCreationDate'
+        - $ref: '#/components/parameters/OrderedByArea'
+        - $ref: '#/components/parameters/OrderedByPopulation'
+        - $ref: '#/components/parameters/OrderedByMetersAboveSeaLevel'
+        - $ref: '#/components/parameters/OrderedByClimate'
+        - $ref: '#/components/parameters/OrderedByGovernment'
+        - $ref: '#/components/parameters/OrderedByStandardOfLiving'
+        - $ref: '#/components/parameters/OrderedByGovernorAge'
         - $ref: '#/components/parameters/OrderedBy'
       responses:
         '200':
@@ -22,13 +56,27 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CityPage'
+
+
         '400':
           $ref: '#/components/responses/BadRequest'
+          description: Неккоректный параметр фильтрации
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                message: "Некорректный запрос"
+                details:
+                  - governor: "Некорректный governor.age"
+                    age: "Должен быть положительным"
+                timestamp: "2026-09-12T12:00:00+03:00"
     post:
       tags:
         - Cities
       summary: Добавить новый город
       operationId: createCity
+
       requestBody:
         required: true
         content:
@@ -42,16 +90,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/City'
+
         '400':
           $ref: '#/components/responses/ValidationError'
+          description: Неккоректный параметр фильтрации
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                message: "Некорректный запрос"
+                details:
+                  - governor: "Некорректный governor.age"
+                    age: "Должен быть положительным"
+                timestamp: "2026-09-12T12:00:00+03:00"
+
   /cities/{id}:
     get:
       tags:
         - Cities
       summary: Получить город по ID
       operationId: getCityById
+
       parameters:
         - $ref: '#/components/parameters/CityId'
+
       responses:
         '200':
           description: Город найден
@@ -59,17 +122,22 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/City'
+
         '400':
           $ref: '#/components/responses/BadRequest'
+
         '404':
           $ref: '#/components/responses/NotFound'
+
     patch:
       tags:
         - Cities
       summary: Обновить город
       operationId: updateCity
+
       parameters:
         - $ref: '#/components/parameters/CityId'
+
       requestBody:
         required: true
         content:
@@ -83,51 +151,42 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/City'
+
         '400':
           $ref: '#/components/responses/ValidationError'
+
         '404':
           $ref: '#/components/responses/NotFound'
+
     delete:
       tags:
         - Cities
       summary: Удалить город
       operationId: deleteCity
+
       parameters:
         - $ref: '#/components/parameters/CityId'
+
       responses:
         '204':
           description: Город удален или уже отсутствует
         '400':
           $ref: '#/components/responses/ValidationError'
-  /cities/min-standard-of-living:
+  /cities/{parameter}/:
     get:
       tags:
         - Special operations
-      summary: Получить город с минимальным уровнем жизни # возвращать если несколько то мин айди
+      summary: Получить объект с указанным параметром и фильтром
       description: |
-        Возвращает любой город, значение standardOfLiving которого
-        является минимальным (индекс значения в енаме)
+        Возвращает любой город, параметр которого подходит под указаный фильтр
         Если городов подходящих несколько, то возвращается с минимальным идентификатором
-      operationId: getCityWithMinStandardOfLiving
-      responses:
-        '200':
-          description: Город с минимальным standardOfLiving
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/City'
-        '404':
-          description: В коллекции нет городов
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-  /cities/max-area:
-    get:
-      tags:
-        - Special operations
-      summary: Получить город с максимальной площадью
-      operationId: getCityWithMaxArea
+      parameters:
+        - $ref: '#/components/parameters/Name'
+        - $ref: '#/components/parameters/Area'
+        - $ref: '#/components/parameters/CityStandardOfLiving'
+        - $ref: '#/components/parameters/Type'
+
+
       responses:
         '200':
           description: Город с максимальным значением площади area
@@ -135,42 +194,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/City'
+
         '404':
           description: В коллекции нет городов
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /cities/name:
-    get:
-      tags:
-        - Special operations
-      summary: Найти города по подстроке имени
-      description: |
-        Возвращает все города, значение поля name которых содержит
-        указанную подстроку (чувствителен к регистру)
-      operationId: findCitiesByName
-      parameters:
-        - name: substring
-          in: query
-          required: true
-          schema:
-            type: string
-            minLength: 1
-      responses:
-        '200':
-          description: Массив найденных городов
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/City'
-        '400':
-          $ref: '#/components/responses/BadRequest'
 
 components:
+
   parameters:
+
     CityId:
       name: id
       in: path
@@ -180,6 +215,50 @@ components:
         type: integer
         format: int32
         minimum: 1
+
+    CityStandardOfLiving:
+      name: standard-of-living
+      in: path
+      required: false
+      description: Тип жизни в городе
+      schema:
+        type: string
+        enum:
+          - ULTRA_HIGH
+          - HIGH
+          - NIGHTMARE
+
+    Name:
+      name: name
+      in: path
+      required: false
+      description: Название города
+      schema:
+        type: string
+        minimum: 1
+
+    Area:
+      name: area
+      in: path
+      required: false
+      description: Площадь города
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+
+    Type:
+      name: type
+      in: query
+      description: Применяемая операция
+      required: true
+      schema:
+        type: string
+        enum:
+          - EQUALS
+          - MIN
+          - MAX
+
     Page:
       name: page
       in: query
@@ -188,6 +267,7 @@ components:
         type: integer
         minimum: 1
         default: 1
+
     PageSize:
       name: pageSize
       in: query
@@ -197,195 +277,269 @@ components:
         minimum: 1
         maximum: 100
         default: 20
-    Filter:
-      name: filter
+    OrderedById:
+      name: orderedBy.id
       in: query
       required: false
-      style: deepObject
-      explode: true
       schema:
-        $ref: '#/components/schemas/Filter'
-    OrderedBy:
-      name: orderedBy
+        $ref: '#/components/schemas/SortOrder'
+    OrderedByName:
+      name: orderedBy.name
       in: query
       required: false
-      style: deepObject
-      explode: true
-
       schema:
-        $ref: '#/components/schemas/OrderedBy'
+        $ref: '#/components/schemas/SortOrder'
+    OrderedByCoordinatesX:
+      name: orderedBy.coordinates.x
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/SortOrder'
+    OrderedByCoordinatesY:
+      name: orderedBy.coordinates.y
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/SortOrder'
+    OrderedByCreationDate:
+      name: orderedBy.creationDate
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/SortOrder'
+    OrderedByArea:
+      name: orderedBy.area
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/SortOrder'
+    OrderedByPopulation:
+      name: orderedBy.population
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/SortOrder'
+    OrderedByMetersAboveSeaLevel:
+      name: orderedBy.metersAboveSeaLevel
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/SortOrder'
+    OrderedByClimate:
+      name: orderedBy.climate
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/SortOrder'
+    OrderedByGovernment:
+      name: orderedBy.government
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/SortOrder'
+    OrderedByStandardOfLiving:
+      name: orderedBy.standardOfLiving
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/SortOrder'
+    OrderedByGovernorAge:
+      name: orderedBy.governor.age
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/SortOrder'
+    FilterId:
+      name: filter.id
+      in: query
+      required: false
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+    FilterIdType:
+      name: filter.id.type
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+          - moreThan
+          - lessThan
+          - equals
+    FilterName:
+      name: filter.name
+      in: query
+      required: false
+      schema:
+        type: string
+    FilterCoordinatesX:
+      name: filter.coordinates.x
+      in: query
+      required: false
+      schema:
+        type: integer
+        format: int32
+    FilterCoordinatesXType:
+      name: filter.coordinates.x.type
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+          - moreThan
+          - lessThan
+          - equals
+    FilterCoordinatesY:
+      name: filter.coordinates.y
+      in: query
+      required: false
+      schema:
+        type: number
+        format: double
+        minimum: -594
+        exclusiveMinimum: true
+    FilterCoordinatesYType:
+      name: filter.coordinates.y.type
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+          - moreThan
+          - lessThan
+          - equals
+    FilterCreationDate:
+      name: filter.creationDate
+      in: query
+      required: false
+      schema:
+        type: string
+        example: '2026-09-12T15:30:45'
+    FilterCreationDateType:
+      name: filter.creationDate.type
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+          - moreThan
+          - lessThan
+          - equals
+    FilterArea:
+      name: filter.area
+      in: query
+      required: false
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+    FilterAreaType:
+      name: filter.area.type
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+          - moreThan
+          - lessThan
+          - equals
+    FilterPopulation:
+      name: filter.population
+      in: query
+      required: false
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+    FilterPopulationType:
+      name: filter.population.type
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+          - moreThan
+          - lessThan
+          - equals
+    FilterMetersAboveSeaLevel:
+      name: filter.metersAboveSeaLevel
+      in: query
+      required: false
+      schema:
+        type: number
+        format: double
+    FilterMetersAboveSeaLevelType:
+      name: filter.metersAboveSeaLevel.type
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+          - moreThan
+          - lessThan
+          - equals
+    FilterClimate:
+      name: filter.climate
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/Climate'
+    FilterClimateType:
+      name: filter.climate.type
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+          - equals
+    FilterGovernment:
+      name: filter.government
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/Government'
+    FilterGovernmentType:
+      name: filter.government.type
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+          - equals
+    FilterStandardOfLiving:
+      name: filter.standardOfLiving
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/StandardOfLiving'
+    FilterStandardOfLivingType:
+      name: filter.standardOfLiving.type
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+          - equals
+    FilterGovernorAge:
+      name: filter.governor.age
+      in: query
+      required: false
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+    FilterGovernorAgeType:
+      name: filter.governor.age.type
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+          - moreThan
+          - lessThan
+          - equals
   schemas:
-    Filter:
-      type: object
-      properties:
-        id:
-          $ref: '#/components/schemas/IntFilter'
-        name:
-          $ref: '#/components/schemas/StringFilter'
-        coordinates:
-          $ref: '#/components/schemas/CoordinatesFilter'
-        creationDate:
-          $ref: '#/components/schemas/DateTimeFilter'
-        area:
-          $ref: '#/components/schemas/LongFilter'
-        population:
-          $ref: '#/components/schemas/LongFilter'
-        metersAboveSeaLevel:
-          $ref: '#/components/schemas/DoubleFilter'
-        climate:
-          $ref: '#/components/schemas/ClimateFilter'
-        government:
-          $ref: '#/components/schemas/GovernmentFilter'
-        standardOfLiving:
-          $ref: '#/components/schemas/StandardOfLivingFilter'
-        governor:
-          $ref: '#/components/schemas/HumanFilter'
-    OrderedBy:
-      type: object
-      properties:
-        id:
-          $ref: '#/components/schemas/SortOrder'
-        name:
-          $ref: '#/components/schemas/SortOrder'
-        coordinates:
-          type: object
-          properties:
-            x:
-              $ref: '#/components/schemas/SortOrder'
-            y:
-              $ref: '#/components/schemas/SortOrder'
-        creationDate:
-          $ref: '#/components/schemas/SortOrder'
-        area:
-          $ref: '#/components/schemas/SortOrder'
-        population:
-          $ref: '#/components/schemas/SortOrder'
-        metersAboveSeaLevel:
-          $ref: '#/components/schemas/SortOrder'
-        climate:
-          $ref: '#/components/schemas/SortOrder'
-        government:
-          $ref: '#/components/schemas/SortOrder'
-        standardOfLiving:
-          $ref: '#/components/schemas/SortOrder'
-        governor:
-          type: object
-          properties:
-            age:
-              $ref: '#/components/schemas/SortOrder'
-    FilterOperator:
-      type: string
-      enum:
-        - moreThan
-        - lessThan
-        - equals
-    SortOrder:
-      type: string
-      enum:
-        - asc
-        - desc
-    IntFilter:
-      type: object
-      required:
-        - type
-        - value
-      properties:
-        type:
-          $ref: '#/components/schemas/FilterOperator'
-        value:
-          type: integer
-          format: int32
-    LongFilter:
-      type: object
-      required:
-        - type
-        - value
-      properties:
-        type:
-          $ref: '#/components/schemas/FilterOperator'
-        value:
-          type: integer
-          format: int64
-    DoubleFilter:
-      type: object
-      required:
-        - type
-        - value
-      properties:
-        type:
-          $ref: '#/components/schemas/FilterOperator'
-        value:
-          type: number
-          format: double
-    StringFilter:
-      type: object
-      required:
-        - type
-        - value
-      properties:
-        type:
-          $ref: '#/components/schemas/FilterOperator'
-        value:
-          type: string
-    DateTimeFilter:
-      type: object
-      required:
-        - type
-        - value
-      properties:
-        type:
-          $ref: '#/components/schemas/FilterOperator'
-        value:
-          type: string
-          example: '2026-09-12T15:30:45'
-    CoordinatesFilter:
-      type: object
-      properties:
-        x:
-          $ref: '#/components/schemas/IntFilter'
-        y:
-          $ref: '#/components/schemas/DoubleFilter'
-    HumanFilter:
-      type: object
-      properties:
-        age:
-          $ref: '#/components/schemas/IntFilter'
-    ClimateFilter:
-      type: object
-      required:
-        - type
-        - value
-      properties:
-        type:
-          type: string
-          enum:
-            - equals
-        value:
-          $ref: '#/components/schemas/Climate'
-    GovernmentFilter:
-      type: object
-      required:
-        - type
-        - value
-      properties:
-        type:
-          type: string
-          enum:
-            - equals
-        value:
-          $ref: '#/components/schemas/Government'
-    StandardOfLivingFilter:
-      type: object
-      required:
-        - type
-        - value
-      properties:
-        type:
-          type: string
-          enum:
-            - equals
-        value:
-          $ref: '#/components/schemas/StandardOfLiving'
     City:
       description: Полный объект города, включая поля, генерируемые сервером.
       allOf:
@@ -408,7 +562,6 @@ components:
               example: '2026-09-12T15:30:45'
     CityRequest:
       type: object
-      description: Поля города, передаваемые клиентом при создании и изменении.
       required:
         - name
         - coordinates
@@ -418,38 +571,44 @@ components:
         - government
         - governor
       properties:
+
         name:
           type: string
           minLength: 1
-          description: Название города
+
         coordinates:
           $ref: '#/components/schemas/Coordinates'
+
         area:
           type: integer
           format: int64
           minimum: 1
-          description: Площадь города
+
         population:
           type: integer
           format: int64
           minimum: 1
-          description: Население города
+
         metersAboveSeaLevel:
           type: number
           format: double
           nullable: true
-          description: Высота над уровнем моря
+
         climate:
           $ref: '#/components/schemas/Climate'
+
         government:
           $ref: '#/components/schemas/Government'
+
         standardOfLiving:
-          nullable: true
           allOf:
             - $ref: '#/components/schemas/StandardOfLiving'
-          description: Уровень жизни
+          nullable: true
+
         governor:
           $ref: '#/components/schemas/Human'
+
+
     Coordinates:
       type: object
       required:
@@ -459,12 +618,16 @@ components:
           type: integer
           format: int32
           nullable: false
+
         y:
           type: number
           format: double
           minimum: -594
           exclusiveMinimum: true
           nullable: false
+
+
+
     Human:
       type: object
       required:
@@ -474,6 +637,7 @@ components:
           type: integer
           format: int32
           minimum: 1
+
     Climate:
       type: string
       enum:
@@ -482,6 +646,8 @@ components:
         - HUMIDCONTINENTAL
         - SUBARCTIC
         - DESERT
+
+
     Government:
       type: string
       enum:
@@ -490,12 +656,131 @@ components:
         - KRITARCHY
         - REPUBLIC
         - TELLUROCRACY
+
+
     StandardOfLiving:
       type: string
       enum:
         - ULTRA_HIGH
         - HIGH
         - NIGHTMARE
+    CoordinatesFilter:
+      type: object
+      description: Фильтры по полям coordinates.
+      properties:
+        x:
+          $ref: '#/components/schemas/IntFilter'
+        y:
+          $ref: '#/components/schemas/DoubleFilter'
+    HumanFilter:
+      type: object
+      description: Фильтры по полям governor.
+      properties:
+        age:
+          $ref: '#/components/schemas/IntFilter'
+    FilterOperator:
+      type: string
+      enum:
+        - moreThan
+        - lessThan
+        - equals
+    SortOrder:
+      type: string
+      enum:
+        - asc
+        - desc
+      description: Направление сортировки.
+    IntFilter:
+      type: object
+      required:
+        - operator
+        - value
+      properties:
+        operator:
+          $ref: '#/components/schemas/FilterOperator'
+        value:
+          type: integer
+          format: int32
+    LongFilter:
+      type: object
+      required:
+        - operator
+        - value
+      properties:
+        operator:
+          $ref: '#/components/schemas/FilterOperator'
+        value:
+          type: integer
+          format: int64
+    DoubleFilter:
+      type: object
+      required:
+        - operator
+        - value
+      properties:
+        operator:
+          $ref: '#/components/schemas/FilterOperator'
+        value:
+          type: number
+          format: double
+    StringFilter:
+      type: object
+      required:
+        - operator
+        - value
+      properties:
+        operator:
+          $ref: '#/components/schemas/FilterOperator'
+        value:
+          type: string
+    DateTimeFilter:
+      type: object
+      required:
+        - operator
+        - value
+      properties:
+        operator:
+          $ref: '#/components/schemas/FilterOperator'
+        value:
+          type: string
+          description: Дата и время в формате LocalDateTime
+          example: '2026-09-12T15:30:45'
+    ClimateFilter:
+      type: object
+      required:
+        - operator
+        - value
+      properties:
+        operator:
+          type: string
+          enum:
+            - equals
+        value:
+          $ref: '#/components/schemas/Climate'
+    GovernmentFilter:
+      type: object
+      required:
+        - operator
+        - value
+      properties:
+        operator:
+          type: string
+          enum:
+            - equals
+        value:
+          $ref: '#/components/schemas/Government'
+    StandardOfLivingFilter:
+      type: object
+      required:
+        - operator
+        - value
+      properties:
+        operator:
+          type: string
+          enum:
+            - equals
+        value:
+          $ref: '#/components/schemas/StandardOfLiving'
     CityPage:
       type: object
       required:
@@ -505,14 +790,17 @@ components:
         - totalElements
         - totalPages
       properties:
+
         content:
           type: array
           items:
             $ref: '#/components/schemas/City'
+
         page:
           type: integer
           minimum: 1
           description: Номер текущей страницы
+
         pageSize:
           type: integer
           minimum: 1
