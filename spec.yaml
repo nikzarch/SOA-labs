@@ -195,12 +195,18 @@ paths:
               schema:
                 $ref: '#/components/schemas/City'
 
-        '404':
-          description: В коллекции нет городов
+        '400':
+          $ref: '#/components/responses/ValidationError'
+          description: Неккоректный параметр фильтрации
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+              example:
+                message: "Некорректный запрос"
+                details:
+                  - area: "Некорректный area должен быть больше 0"
+                timestamp: "2026-09-12T12:00:00+03:00"
 
 components:
 
