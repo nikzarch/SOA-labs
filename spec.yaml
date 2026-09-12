@@ -196,7 +196,6 @@ paths:
                 $ref: '#/components/schemas/City'
 
         '400':
-          $ref: '#/components/responses/ValidationError'
           description: Неккоректный параметр фильтрации
           content:
             application/json:
