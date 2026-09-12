@@ -94,7 +94,7 @@ components:
 
         timestamp:
           type: string
-          format: date-time # сделать не в UTC а под класс джавы
+          format: date-time
           readOnly: true
           example: "2026-09-12T15:30:45"
   responses:

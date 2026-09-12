@@ -10,101 +10,45 @@ paths:
         - Cities
       summary: Получить список городов
       operationId: getCities
-
       parameters:
         - $ref: '#/components/parameters/Page'
         - $ref: '#/components/parameters/PageSize'
-        - $ref: '#/components/parameters/SortBy'
-        - $ref: '#/components/parameters/OrderBy' # несколько полей фильтрации и сортировки, фильтры различные типо больше меньше равно
-
-        - name: id
-          in: query
-          required: false
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-
-        - name: name
-          in: query
-          required: false
-          schema:
-            type: string
-
-        - name: coordinates.x
-          in: query
-          required: false
-          schema:
-            nullable: false
-            type: integer
-            format: int32
-
-        - name: coordinates.y
-          in: query
-          required: false
-          schema:
-            type: number
-            format: double
-            minimum: -594
-            exclusiveMinimum: true
-
-        - name: creationDate
-          in: query
-          required: false
-          schema:
-            type: string
-            format: date-time
-            example: "2026-09-12T15:30:45"
-
-        - name: area
-          in: query
-          required: false
-          schema:
-            type: integer
-            format: int64
-            minimum: 1
-
-        - name: population
-          in: query
-          required: false
-          schema:
-            type: integer
-            format: int64
-            minimum: 1
-
-        - name: metersAboveSeaLevel
-          in: query
-          required: false
-          schema:
-            type: number
-            format: double
-
-        - name: climate
-          in: query
-          required: false
-          schema:
-            $ref: '#/components/schemas/Climate'
-
-        - name: government
-          in: query
-          required: false
-          schema:
-            $ref: '#/components/schemas/Government'
-
-        - name: standardOfLiving
-          in: query
-          required: false
-          schema:
-            $ref: '#/components/schemas/StandardOfLiving'
-
-        - name: governor.age
-          in: query
-          required: false
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-
+        - $ref: '#/components/parameters/FilterId'
+        - $ref: '#/components/parameters/FilterIdType'
+        - $ref: '#/components/parameters/FilterName'
+        - $ref: '#/components/parameters/FilterNameType'
+        - $ref: '#/components/parameters/FilterCoordinatesX'
+        - $ref: '#/components/parameters/FilterCoordinatesXType'
+        - $ref: '#/components/parameters/FilterCoordinatesY'
+        - $ref: '#/components/parameters/FilterCoordinatesYType'
+        - $ref: '#/components/parameters/FilterCreationDate'
+        - $ref: '#/components/parameters/FilterCreationDateType'
+        - $ref: '#/components/parameters/FilterArea'
+        - $ref: '#/components/parameters/FilterAreaType'
+        - $ref: '#/components/parameters/FilterPopulation'
+        - $ref: '#/components/parameters/FilterPopulationType'
+        - $ref: '#/components/parameters/FilterMetersAboveSeaLevel'
+        - $ref: '#/components/parameters/FilterMetersAboveSeaLevelType'
+        - $ref: '#/components/parameters/FilterClimate'
+        - $ref: '#/components/parameters/FilterClimateType'
+        - $ref: '#/components/parameters/FilterGovernment'
+        - $ref: '#/components/parameters/FilterGovernmentType'
+        - $ref: '#/components/parameters/FilterStandardOfLiving'
+        - $ref: '#/components/parameters/FilterStandardOfLivingType'
+        - $ref: '#/components/parameters/FilterGovernorAge'
+        - $ref: '#/components/parameters/FilterGovernorAgeType'
+        - $ref: '#/components/parameters/OrderedById'
+        - $ref: '#/components/parameters/OrderedByName'
+        - $ref: '#/components/parameters/OrderedByCoordinatesX'
+        - $ref: '#/components/parameters/OrderedByCoordinatesY'
+        - $ref: '#/components/parameters/OrderedByCreationDate'
+        - $ref: '#/components/parameters/OrderedByArea'
+        - $ref: '#/components/parameters/OrderedByPopulation'
+        - $ref: '#/components/parameters/OrderedByMetersAboveSeaLevel'
+        - $ref: '#/components/parameters/OrderedByClimate'
+        - $ref: '#/components/parameters/OrderedByGovernment'
+        - $ref: '#/components/parameters/OrderedByStandardOfLiving'
+        - $ref: '#/components/parameters/OrderedByGovernorAge'
       responses:
         '200':
           description: Страница результатов
@@ -184,8 +128,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CityCreate'
-
+              $ref: '#/components/schemas/CityRequest'
       responses:
         '201':
           description: Город успешно создан
@@ -292,8 +235,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CityUpdate'
-
+              $ref: '#/components/schemas/CityRequest'
       responses:
         '200':
           description: Город успешно обновлен
@@ -406,70 +348,8 @@ paths:
         '400':
           $ref: '#/components/responses/BadRequest'
 
-  /route/calculate/to-largest:
-    get:
-      tags:
-        - Routes # отдельная страничка сваггера
-      summary: Рассчитать длину маршрута до крупнейшего города
-      description: |
-        Получает из первого вебсервиса город с максимальной площадью
-        и рассчитывает длину маршрута до него и возвращает её
-      operationId: calculateRouteToLargest
-
-      responses:
-        '200':
-          description: Длина маршрута
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RouteLength'
-
-        '404':
-          description: В коллекции отсутствуют города
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-        '502':
-          description: Первый веб-сервис недоступен
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
 
 
-  /route/calculate/to-newest:
-    get:
-      tags:
-        - Routes
-      summary: Рассчитать длину маршрута до новейшего города
-      description: |
-        Получает из первого вебсервиса город созданный позже остальных,
-        и рассчитывает длину маршрута от точки (0,0) до этого города.
-      operationId: calculateRouteToNewest
-
-      responses:
-        '200':
-          description: Длина маршрута
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RouteLength'
-
-        '404':
-          description: В коллекции отсутствуют города
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-        '502':
-          description: Первый веб-сервис недоступен
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
 components:
 
   parameters:
@@ -502,161 +382,290 @@ components:
         minimum: 1
         maximum: 100
         default: 20
-
-    SortBy:
-      name: sortBy
+    OrderedById:
+      name: orderedBy.id
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/SortOrder'
+    OrderedByName:
+      name: orderedBy.name
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/SortOrder'
+    OrderedByCoordinatesX:
+      name: orderedBy.coordinates.x
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/SortOrder'
+    OrderedByCoordinatesY:
+      name: orderedBy.coordinates.y
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/SortOrder'
+    OrderedByCreationDate:
+      name: orderedBy.creationDate
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/SortOrder'
+    OrderedByArea:
+      name: orderedBy.area
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/SortOrder'
+    OrderedByPopulation:
+      name: orderedBy.population
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/SortOrder'
+    OrderedByMetersAboveSeaLevel:
+      name: orderedBy.metersAboveSeaLevel
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/SortOrder'
+    OrderedByClimate:
+      name: orderedBy.climate
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/SortOrder'
+    OrderedByGovernment:
+      name: orderedBy.government
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/SortOrder'
+    OrderedByStandardOfLiving:
+      name: orderedBy.standardOfLiving
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/SortOrder'
+    OrderedByGovernorAge:
+      name: orderedBy.governor.age
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/SortOrder'
+    FilterId:
+      name: filter.id
+      in: query
+      required: false
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+    FilterIdType:
+      name: filter.id.type
       in: query
       required: false
       schema:
         type: string
         enum:
-          - id
-          - name
-          - coordinates.x
-          - coordinates.y
-          - creationDate
-          - area
-          - population
-          - metersAboveSeaLevel
-          - climate
-          - government
-          - standardOfLiving
-          - governor.age
-        default: id
-
-    OrderBy:
-      name: OrderBy
+          - moreThan
+          - lessThan
+          - equals
+    FilterName:
+      name: filter.name
+      in: query
+      required: false
+      schema:
+        type: string
+    FilterCoordinatesX:
+      name: filter.coordinates.x
+      in: query
+      required: false
+      schema:
+        type: integer
+        format: int32
+    FilterCoordinatesXType:
+      name: filter.coordinates.x.type
       in: query
       required: false
       schema:
         type: string
         enum:
-          - asc
-          - desc
-        default: asc
-
+          - moreThan
+          - lessThan
+          - equals
+    FilterCoordinatesY:
+      name: filter.coordinates.y
+      in: query
+      required: false
+      schema:
+        type: number
+        format: double
+        minimum: -594
+        exclusiveMinimum: true
+    FilterCoordinatesYType:
+      name: filter.coordinates.y.type
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+          - moreThan
+          - lessThan
+          - equals
+    FilterCreationDate:
+      name: filter.creationDate
+      in: query
+      required: false
+      schema:
+        type: string
+        example: '2026-09-12T15:30:45'
+    FilterCreationDateType:
+      name: filter.creationDate.type
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+          - moreThan
+          - lessThan
+          - equals
+    FilterArea:
+      name: filter.area
+      in: query
+      required: false
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+    FilterAreaType:
+      name: filter.area.type
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+          - moreThan
+          - lessThan
+          - equals
+    FilterPopulation:
+      name: filter.population
+      in: query
+      required: false
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+    FilterPopulationType:
+      name: filter.population.type
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+          - moreThan
+          - lessThan
+          - equals
+    FilterMetersAboveSeaLevel:
+      name: filter.metersAboveSeaLevel
+      in: query
+      required: false
+      schema:
+        type: number
+        format: double
+    FilterMetersAboveSeaLevelType:
+      name: filter.metersAboveSeaLevel.type
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+          - moreThan
+          - lessThan
+          - equals
+    FilterClimate:
+      name: filter.climate
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/Climate'
+    FilterClimateType:
+      name: filter.climate.type
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+          - equals
+    FilterGovernment:
+      name: filter.government
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/Government'
+    FilterGovernmentType:
+      name: filter.government.type
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+          - equals
+    FilterStandardOfLiving:
+      name: filter.standardOfLiving
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/StandardOfLiving'
+    FilterStandardOfLivingType:
+      name: filter.standardOfLiving.type
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+          - equals
+    FilterGovernorAge:
+      name: filter.governor.age
+      in: query
+      required: false
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+    FilterGovernorAgeType:
+      name: filter.governor.age.type
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+          - moreThan
+          - lessThan
+          - equals
   schemas:
-
     City:
-      type: object
-      required:
-        - id
-        - name
-        - coordinates
-        - creationDate
-        - area
-        - population
-        - climate
-        - government
-        - governor
-      properties:
-
-        id:
-          type: integer
-          format: int32
-          minimum: 1
-          readOnly: true
-          description: |
-            Уникальный идентификатор
-        name:
-          type: string
-          minLength: 1
-          description: Название города
-
-        coordinates:
-          $ref: '#/components/schemas/Coordinates'
-
-        creationDate:
-          type: string
-          format: date-time
-          readOnly: true
-          example: "2026-09-12T15:30:45"
-          description: |
-            Дата и время создания города.
-        area:
-          type: integer
-          format: int64
-          minimum: 1
-          description: Площадь города
-
-        population:
-          type: integer
-          format: int64
-          minimum: 1
-          description: Население города
-
-        metersAboveSeaLevel:
-          type: number
-          format: double
-          nullable: true
-          description: Высота над уровнем моря
-
-        climate:
-          $ref: '#/components/schemas/Climate'
-
-        government:
-          $ref: '#/components/schemas/Government'
-
-        standardOfLiving:
-          allOf:
-            - $ref: '#/components/schemas/StandardOfLiving'
-          nullable: true
-          description: Уровень жизни
-
-        governor:
-          $ref: '#/components/schemas/Human'
-
-
-    CityCreate:
-      type: object
-      required:
-        - name
-        - coordinates
-        - area
-        - population
-        - climate
-        - government
-        - governor
-      properties:
-
-        name:
-          type: string
-          minLength: 1
-
-        coordinates:
-          $ref: '#/components/schemas/Coordinates'
-
-        area:
-          type: integer
-          format: int64
-          minimum: 1
-
-        population:
-          type: integer
-          format: int64
-          minimum: 1
-
-        metersAboveSeaLevel:
-          type: number
-          format: double
-          nullable: true
-
-        climate:
-          $ref: '#/components/schemas/Climate'
-
-        government:
-          $ref: '#/components/schemas/Government'
-
-        standardOfLiving:
-          allOf:
-            - $ref: '#/components/schemas/StandardOfLiving'
-          nullable: true
-
-        governor:
-          $ref: '#/components/schemas/Human'
-
-
-    CityUpdate:
+      description: Полный объект города, включая поля, генерируемые сервером.
+      allOf:
+        - $ref: '#/components/schemas/CityRequest'
+        - type: object
+          required:
+            - id
+            - creationDate
+          properties:
+            id:
+              type: integer
+              format: int32
+              minimum: 1
+              readOnly: true
+              description: Уникальный идентификатор
+            creationDate:
+              type: string
+              readOnly: true
+              description: Дата и время создания города в формате LocalDateTime
+              example: '2026-09-12T15:30:45'
+    CityRequest:
       type: object
       required:
         - name
@@ -760,8 +769,123 @@ components:
         - ULTRA_HIGH
         - HIGH
         - NIGHTMARE
-
-
+    CoordinatesFilter:
+      type: object
+      description: Фильтры по полям coordinates.
+      properties:
+        x:
+          $ref: '#/components/schemas/IntFilter'
+        y:
+          $ref: '#/components/schemas/DoubleFilter'
+    HumanFilter:
+      type: object
+      description: Фильтры по полям governor.
+      properties:
+        age:
+          $ref: '#/components/schemas/IntFilter'
+    FilterOperator:
+      type: string
+      enum:
+        - moreThan
+        - lessThan
+        - equals
+    SortOrder:
+      type: string
+      enum:
+        - asc
+        - desc
+      description: Направление сортировки.
+    IntFilter:
+      type: object
+      required:
+        - operator
+        - value
+      properties:
+        operator:
+          $ref: '#/components/schemas/FilterOperator'
+        value:
+          type: integer
+          format: int32
+    LongFilter:
+      type: object
+      required:
+        - operator
+        - value
+      properties:
+        operator:
+          $ref: '#/components/schemas/FilterOperator'
+        value:
+          type: integer
+          format: int64
+    DoubleFilter:
+      type: object
+      required:
+        - operator
+        - value
+      properties:
+        operator:
+          $ref: '#/components/schemas/FilterOperator'
+        value:
+          type: number
+          format: double
+    StringFilter:
+      type: object
+      required:
+        - operator
+        - value
+      properties:
+        operator:
+          $ref: '#/components/schemas/FilterOperator'
+        value:
+          type: string
+    DateTimeFilter:
+      type: object
+      required:
+        - operator
+        - value
+      properties:
+        operator:
+          $ref: '#/components/schemas/FilterOperator'
+        value:
+          type: string
+          description: Дата и время в формате LocalDateTime
+          example: '2026-09-12T15:30:45'
+    ClimateFilter:
+      type: object
+      required:
+        - operator
+        - value
+      properties:
+        operator:
+          type: string
+          enum:
+            - equals
+        value:
+          $ref: '#/components/schemas/Climate'
+    GovernmentFilter:
+      type: object
+      required:
+        - operator
+        - value
+      properties:
+        operator:
+          type: string
+          enum:
+            - equals
+        value:
+          $ref: '#/components/schemas/Government'
+    StandardOfLivingFilter:
+      type: object
+      required:
+        - operator
+        - value
+      properties:
+        operator:
+          type: string
+          enum:
+            - equals
+        value:
+          $ref: '#/components/schemas/StandardOfLiving'
     CityPage:
       type: object
       required:
@@ -786,69 +910,43 @@ components:
           type: integer
           minimum: 1
           description: Размер страницы
-
         totalElements:
           type: integer
           format: int64
           minimum: 0
           description: Количество элементов
-
         totalPages:
           type: integer
           minimum: 0
           description: Количество страниц
-
-
-    RouteLength:
-      type: object
-      required:
-        - length
-      properties:
-        length:
-          type: number
-          format: double
-          minimum: 0
-          description: Длина маршрута
-
-
     Error:
       type: object
       required:
         - message
         - timestamp
       properties:
-
-        code:
-          type: integer
-
         message:
           type: string
-
         timestamp:
           type: string
-          format: date-time
-          example: "2026-09-12T15:30:45"
-
+          description: Время возникновения ошибки в формате LocalDateTime
+          example: '2026-09-12T15:30:45'
   responses:
-
     BadRequest:
       description: Некорректные параметры запроса
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
-
     ValidationError:
       description: Ошибка валидации параметров запроса
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
-
     NotFound:
       description: Объект с указанным id не найден
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
-  
