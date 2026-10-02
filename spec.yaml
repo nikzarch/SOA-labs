@@ -25,7 +25,6 @@ paths:
 
 
         '400':
-          $ref: '#/components/responses/BadRequest'
           description: Неккоректный параметр фильтрации
           content:
             application/json:
@@ -58,8 +57,7 @@ paths:
                 $ref: '#/components/schemas/City'
 
         '400':
-          $ref: '#/components/responses/ValidationError'
-          description: Неккоректный параметр фильтрации
+          description: Неккоректный параметр объекта
           content:
             application/json:
               schema:
@@ -119,7 +117,17 @@ paths:
                 $ref: '#/components/schemas/City'
 
         '400':
-          $ref: '#/components/responses/ValidationError'
+          description: Неккоректный параметр объекта
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                message: "Неккоректный параметр объекта"
+                details:
+                  - governor: "Некорректный governor.age"
+                    age: "Должен быть положительным"
+                timestamp: "2026-09-12T12:00:00+03:00"
 
         '404':
           $ref: '#/components/responses/NotFound'
@@ -138,6 +146,8 @@ paths:
           description: Город удален или уже отсутствует
         '400':
           $ref: '#/components/responses/ValidationError'
+
+        
   /cities/{parameter}/:
     get:
       tags:
@@ -582,10 +592,14 @@ components:
       properties:
         message:
           type: string
+        details:
+          type: array
+          items:
+            type: object
+            additionalProperties:
+              type: string
         timestamp:
           type: string
-          description: Время возникновения ошибки в формате LocalDateTime
-          example: '2026-09-12T15:30:45'
   responses:
     BadRequest:
       description: Некорректные параметры запроса
