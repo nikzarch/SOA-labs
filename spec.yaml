@@ -584,14 +584,8 @@ components:
           type: array
           items:
             type: object
-            required:
-              - field
-              - message
-            properties:
-              field:
-                type: string
-              message:
-                type: string
+            additionalProperties:
+              type: string
         timestamp:
           type: string
   responses:
