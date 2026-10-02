@@ -13,41 +13,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/Page'
         - $ref: '#/components/parameters/PageSize'
-        - $ref: '#/components/parameters/FilterId'
-        - $ref: '#/components/parameters/FilterIdType'
-        - $ref: '#/components/parameters/FilterName'
-        - $ref: '#/components/parameters/FilterCoordinatesX'
-        - $ref: '#/components/parameters/FilterCoordinatesXType'
-        - $ref: '#/components/parameters/FilterCoordinatesY'
-        - $ref: '#/components/parameters/FilterCoordinatesYType'
-        - $ref: '#/components/parameters/FilterCreationDate'
-        - $ref: '#/components/parameters/FilterCreationDateType'
-        - $ref: '#/components/parameters/FilterArea'
-        - $ref: '#/components/parameters/FilterAreaType'
-        - $ref: '#/components/parameters/FilterPopulation'
-        - $ref: '#/components/parameters/FilterPopulationType'
-        - $ref: '#/components/parameters/FilterMetersAboveSeaLevel'
-        - $ref: '#/components/parameters/FilterMetersAboveSeaLevelType'
-        - $ref: '#/components/parameters/FilterClimate'
-        - $ref: '#/components/parameters/FilterClimateType'
-        - $ref: '#/components/parameters/FilterGovernment'
-        - $ref: '#/components/parameters/FilterGovernmentType'
-        - $ref: '#/components/parameters/FilterStandardOfLiving'
-        - $ref: '#/components/parameters/FilterStandardOfLivingType'
-        - $ref: '#/components/parameters/FilterGovernorAge'
-        - $ref: '#/components/parameters/FilterGovernorAgeType'
-        - $ref: '#/components/parameters/OrderedById'
-        - $ref: '#/components/parameters/OrderedByName'
-        - $ref: '#/components/parameters/OrderedByCoordinatesX'
-        - $ref: '#/components/parameters/OrderedByCoordinatesY'
-        - $ref: '#/components/parameters/OrderedByCreationDate'
-        - $ref: '#/components/parameters/OrderedByArea'
-        - $ref: '#/components/parameters/OrderedByPopulation'
-        - $ref: '#/components/parameters/OrderedByMetersAboveSeaLevel'
-        - $ref: '#/components/parameters/OrderedByClimate'
-        - $ref: '#/components/parameters/OrderedByGovernment'
-        - $ref: '#/components/parameters/OrderedByStandardOfLiving'
-        - $ref: '#/components/parameters/OrderedByGovernorAge'
+        - $ref: '#/components/parameters/ArrayQuery'
         - $ref: '#/components/parameters/OrderedBy'
       responses:
         '200':
@@ -282,268 +248,57 @@ components:
         minimum: 1
         maximum: 100
         default: 20
-    OrderedById:
-      name: orderedBy.id
+    OrderedBy:
+      name: orderedBy
       in: query
       required: false
+      style: form
+      explode: true
       schema:
-        $ref: '#/components/schemas/SortOrder'
-    OrderedByName:
-      name: orderedBy.name
+        type: array
+        minItems: 1
+        items:
+          type: string
+      examples:
+        combined:
+          summary: По населению по убыванию, затем по названию по возрастанию
+          value:
+            - population:desc
+            - name:asc
+        name:
+          summary: По названию по возрастанию
+          value:
+            - name:asc
+        creationDate:
+          summary: Сначала недавно созданные города
+          value:
+            - creationDate:desc
+    ArrayQuery:
+      name: filters
       in: query
       required: false
+      style: form
+      explode: true
       schema:
-        $ref: '#/components/schemas/SortOrder'
-    OrderedByCoordinatesX:
-      name: orderedBy.coordinates.x
-      in: query
-      required: false
-      schema:
-        $ref: '#/components/schemas/SortOrder'
-    OrderedByCoordinatesY:
-      name: orderedBy.coordinates.y
-      in: query
-      required: false
-      schema:
-        $ref: '#/components/schemas/SortOrder'
-    OrderedByCreationDate:
-      name: orderedBy.creationDate
-      in: query
-      required: false
-      schema:
-        $ref: '#/components/schemas/SortOrder'
-    OrderedByArea:
-      name: orderedBy.area
-      in: query
-      required: false
-      schema:
-        $ref: '#/components/schemas/SortOrder'
-    OrderedByPopulation:
-      name: orderedBy.population
-      in: query
-      required: false
-      schema:
-        $ref: '#/components/schemas/SortOrder'
-    OrderedByMetersAboveSeaLevel:
-      name: orderedBy.metersAboveSeaLevel
-      in: query
-      required: false
-      schema:
-        $ref: '#/components/schemas/SortOrder'
-    OrderedByClimate:
-      name: orderedBy.climate
-      in: query
-      required: false
-      schema:
-        $ref: '#/components/schemas/SortOrder'
-    OrderedByGovernment:
-      name: orderedBy.government
-      in: query
-      required: false
-      schema:
-        $ref: '#/components/schemas/SortOrder'
-    OrderedByStandardOfLiving:
-      name: orderedBy.standardOfLiving
-      in: query
-      required: false
-      schema:
-        $ref: '#/components/schemas/SortOrder'
-    OrderedByGovernorAge:
-      name: orderedBy.governor.age
-      in: query
-      required: false
-      schema:
-        $ref: '#/components/schemas/SortOrder'
-    FilterId:
-      name: filter.id
-      in: query
-      required: false
-      schema:
-        type: integer
-        format: int32
-        minimum: 1
-    FilterIdType:
-      name: filter.id.type
-      in: query
-      required: false
-      schema:
-        type: string
-        enum:
-          - moreThan
-          - lessThan
-          - equals
-    FilterName:
-      name: filter.name
-      in: query
-      required: false
-      schema:
-        type: string
-    FilterCoordinatesX:
-      name: filter.coordinates.x
-      in: query
-      required: false
-      schema:
-        type: integer
-        format: int32
-    FilterCoordinatesXType:
-      name: filter.coordinates.x.type
-      in: query
-      required: false
-      schema:
-        type: string
-        enum:
-          - moreThan
-          - lessThan
-          - equals
-    FilterCoordinatesY:
-      name: filter.coordinates.y
-      in: query
-      required: false
-      schema:
-        type: number
-        format: double
-        minimum: -594
-        exclusiveMinimum: true
-    FilterCoordinatesYType:
-      name: filter.coordinates.y.type
-      in: query
-      required: false
-      schema:
-        type: string
-        enum:
-          - moreThan
-          - lessThan
-          - equals
-    FilterCreationDate:
-      name: filter.creationDate
-      in: query
-      required: false
-      schema:
-        type: string
-        example: '2026-09-12T15:30:45'
-    FilterCreationDateType:
-      name: filter.creationDate.type
-      in: query
-      required: false
-      schema:
-        type: string
-        enum:
-          - moreThan
-          - lessThan
-          - equals
-    FilterArea:
-      name: filter.area
-      in: query
-      required: false
-      schema:
-        type: integer
-        format: int64
-        minimum: 1
-    FilterAreaType:
-      name: filter.area.type
-      in: query
-      required: false
-      schema:
-        type: string
-        enum:
-          - moreThan
-          - lessThan
-          - equals
-    FilterPopulation:
-      name: filter.population
-      in: query
-      required: false
-      schema:
-        type: integer
-        format: int64
-        minimum: 1
-    FilterPopulationType:
-      name: filter.population.type
-      in: query
-      required: false
-      schema:
-        type: string
-        enum:
-          - moreThan
-          - lessThan
-          - equals
-    FilterMetersAboveSeaLevel:
-      name: filter.metersAboveSeaLevel
-      in: query
-      required: false
-      schema:
-        type: number
-        format: double
-    FilterMetersAboveSeaLevelType:
-      name: filter.metersAboveSeaLevel.type
-      in: query
-      required: false
-      schema:
-        type: string
-        enum:
-          - moreThan
-          - lessThan
-          - equals
-    FilterClimate:
-      name: filter.climate
-      in: query
-      required: false
-      schema:
-        $ref: '#/components/schemas/Climate'
-    FilterClimateType:
-      name: filter.climate.type
-      in: query
-      required: false
-      schema:
-        type: string
-        enum:
-          - equals
-    FilterGovernment:
-      name: filter.government
-      in: query
-      required: false
-      schema:
-        $ref: '#/components/schemas/Government'
-    FilterGovernmentType:
-      name: filter.government.type
-      in: query
-      required: false
-      schema:
-        type: string
-        enum:
-          - equals
-    FilterStandardOfLiving:
-      name: filter.standardOfLiving
-      in: query
-      required: false
-      schema:
-        $ref: '#/components/schemas/StandardOfLiving'
-    FilterStandardOfLivingType:
-      name: filter.standardOfLiving.type
-      in: query
-      required: false
-      schema:
-        type: string
-        enum:
-          - equals
-    FilterGovernorAge:
-      name: filter.governor.age
-      in: query
-      required: false
-      schema:
-        type: integer
-        format: int32
-        minimum: 1
-    FilterGovernorAgeType:
-      name: filter.governor.age.type
-      in: query
-      required: false
-      schema:
-        type: string
-        enum:
-          - moreThan
-          - lessThan
-          - equals
+        type: array
+        minItems: 1
+        items:
+          type: string
+      examples:
+        combined:
+          summary: Население больше 100000 и субарктический климат
+          value:
+            - population:moreThan:100000
+            - climate:equals:SUBARCTIC
+        range:
+          summary: Диапазон площади
+          value:
+            - area:moreThan:100
+            - area:lessThan:1000
+        creationDate:
+          summary: Города, созданные после указанной даты
+          value:
+            - creationDate:moreThan:2026-09-12T15:30:45
   schemas:
     City:
       description: Полный объект города, включая поля, генерируемые сервером.
