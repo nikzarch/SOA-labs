@@ -92,6 +92,19 @@ components:
         message:
           type: string
 
+        details:
+          type: array
+          items:
+            type: object
+            required:
+              - field
+              - message
+            properties:
+              field:
+                type: string
+              message:
+                type: string
+
         timestamp:
           type: string
           format: date-time
