@@ -33,8 +33,7 @@ paths:
               example:
                 message: "Некорректный запрос"
                 details:
-                  - governor: "Некорректный governor.age"
-                    age: "Должен быть положительным"
+                  - "Возраст должен быть положительным (governor.age)"
                 timestamp: "2026-09-12T12:00:00+03:00"
     post:
       tags:
@@ -65,8 +64,7 @@ paths:
               example:
                 message: "Некорректный запрос"
                 details:
-                  - governor: "Некорректный governor.age"
-                    age: "Должен быть положительным"
+                  - "Возраст должен быть положительным (governor.age)"
                 timestamp: "2026-09-12T12:00:00+03:00"
 
   /cities/{id}:
@@ -125,8 +123,7 @@ paths:
               example:
                 message: "Неккоректный параметр объекта"
                 details:
-                  - governor: "Некорректный governor.age"
-                    age: "Должен быть положительным"
+                  - "Возраст должен быть положительным (governor.age)"
                 timestamp: "2026-09-12T12:00:00+03:00"
 
         '404':
@@ -180,7 +177,7 @@ paths:
               example:
                 message: "Некорректный запрос"
                 details:
-                  - area: "Некорректный area должен быть больше 0"
+                  - "Должен быть больше 0 (area)"
                 timestamp: "2026-09-12T12:00:00+03:00"
 
 components:
@@ -595,9 +592,7 @@ components:
         details:
           type: array
           items:
-            type: object
-            additionalProperties:
-              type: string
+            type: string
         timestamp:
           type: string
   responses:
