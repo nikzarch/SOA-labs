@@ -145,8 +145,8 @@ paths:
           $ref: '#/components/responses/ValidationError'
 
         
-  /cities/{parameter}/:
-    get:
+  /cities/{parameter}/{value}:
+    post:
       tags:
         - Special operations
       summary: Получить объект с указанным параметром и фильтром
@@ -154,15 +154,14 @@ paths:
         Возвращает любой город, параметр которого подходит под указаный фильтр
         Если городов подходящих несколько, то возвращается с минимальным идентификатором
       parameters:
-        - $ref: '#/components/parameters/Name'
-        - $ref: '#/components/parameters/Area'
-        - $ref: '#/components/parameters/CityStandardOfLiving'
+        - $ref: '#/components/parameters/CityParameter'
+        - $ref: '#/components/parameters/CityParameterValue'
         - $ref: '#/components/parameters/Type'
 
 
       responses:
         '200':
-          description: Город с максимальным значением площади area
+          description: Город, соответствующий указанному условию
           content:
             application/json:
               schema:
@@ -194,36 +193,24 @@ components:
         format: int32
         minimum: 1
 
-    CityStandardOfLiving:
-      name: standard-of-living
+    CityParameter:
+      name: parameter
       in: path
-      required: false
-      description: Тип жизни в городе
+      required: true
       schema:
         type: string
         enum:
-          - ULTRA_HIGH
-          - HIGH
-          - NIGHTMARE
+          - name
+          - area
+          - standard-of-living
 
-    Name:
-      name: name
+    CityParameterValue:
+      name: value
       in: path
-      required: false
-      description: Название города
+      required: true
       schema:
         type: string
-        minimum: 1
-
-    Area:
-      name: area
-      in: path
-      required: false
-      description: Площадь города
-      schema:
-        type: integer
-        format: int32
-        minimum: 1
+        minLength: 1
 
     Type:
       name: type
