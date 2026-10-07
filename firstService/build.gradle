@@ -23,8 +23,6 @@ ext {
 }
 
 dependencies {
-    compileOnly platform("org.wildfly.bom:wildfly-ee-with-tools:${wildflyVersion}")
-
     implementation 'jakarta.enterprise:jakarta.enterprise.cdi-api:5.0.0'
     implementation 'jakarta.ws.rs:jakarta.ws.rs-api:4.0.0'
     implementation 'jakarta.persistence:jakarta.persistence-api:3.2.0'
@@ -34,6 +32,7 @@ dependencies {
     implementation 'org.hibernate.orm:hibernate-core:7.1.36.Final'
     runtimeOnly 'org.postgresql:postgresql:42.7.13'
     compileOnly 'org.projectlombok:lombok:1.18.36'
+    annotationProcessor 'org.projectlombok:lombok:1.18.36'
 }
 
 tasks.withType(JavaCompile).configureEach {
