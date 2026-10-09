@@ -4,4 +4,8 @@ public class UnreachableServiceException extends RuntimeException {
     public UnreachableServiceException(String message) {
         super(message);
     }
+
+    public UnreachableServiceException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

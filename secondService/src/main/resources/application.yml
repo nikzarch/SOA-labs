@@ -11,4 +11,4 @@ spring:
     driverClassName: org.postgresql.Driver
 
 additionalProps:
-  firstUrl: "localhost:8080/cities/"
+  firstUrl: "${FIRST_SERVICE_URL:http://localhost:8080/firstService-api/cities}"
