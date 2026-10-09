@@ -32,6 +32,7 @@ dependencies {
     implementation 'org.hibernate.orm:hibernate-core:7.1.36.Final'
     runtimeOnly 'org.postgresql:postgresql:42.7.13'
     compileOnly 'org.projectlombok:lombok:1.18.36'
+    annotationProcessor 'org.hibernate.orm:hibernate-processor:7.1.36.Final'
     annotationProcessor 'org.projectlombok:lombok:1.18.36'
 }
 
@@ -45,5 +46,5 @@ tasks.withType(Test).configureEach {
 }
 
 war {
-    archiveBaseName = 'firstService-api'
+    archiveFileName = 'ROOT.war'
 }

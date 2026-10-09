@@ -12,14 +12,4 @@ import java.util.Set;
 
 @ApplicationPath("/")
 public class FirstServiceApplication extends Application {
-    @Override
-    public Set<Class<?>> getClasses() {
-        return Set.of(
-                CityController.class,
-                ApiExceptionMapper.class,
-                ConstraintViolationMapper.class,
-                JsonProcessingExceptionMapper.class,
-                WebApplicationExceptionMapper.class
-        );
-    }
 }

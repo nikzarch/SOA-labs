@@ -3,6 +3,7 @@ package ru.nikzarch.firstService.error;
 import jakarta.ws.rs.core.Response;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import ru.nikzarch.firstService.dto.ErrorResponse;
 
 import java.util.List;
 import java.util.Map;

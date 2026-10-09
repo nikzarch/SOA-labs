@@ -11,6 +11,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
@@ -19,6 +20,7 @@ import java.time.LocalDateTime;
 @Table(name = "cities")
 @Getter
 @Setter
+@NoArgsConstructor
 public class CityEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -56,7 +58,4 @@ public class CityEntity {
 
     @Column(name = "creation_date", updatable = false)
     private LocalDateTime creationDate = LocalDateTime.now();
-
-    public CityEntity() {
-    }
 }

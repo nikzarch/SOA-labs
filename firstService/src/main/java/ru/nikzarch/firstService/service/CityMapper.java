@@ -1,55 +1,104 @@
 package ru.nikzarch.firstService.service;
 
-import ru.nikzarch.firstService.api.CityRequest;
-import ru.nikzarch.firstService.api.CityResponse;
+import ru.nikzarch.firstService.dto.*;
 import ru.nikzarch.firstService.model.CityEntity;
-import ru.nikzarch.firstService.model.Climate;
 import ru.nikzarch.firstService.model.CoordinatesEntity;
-import ru.nikzarch.firstService.model.Government;
 import ru.nikzarch.firstService.model.HumanEntity;
-import ru.nikzarch.firstService.model.StandardOfLiving;
 
 public class CityMapper {
-    private CityMapper() {}
-
-    public static CityEntity toEntity(CityRequest request) {
-        CityEntity entity = new CityEntity();
-        copyToEntity(request, entity);
-        return entity;
+    private CityMapper() {
     }
 
-    public static void copyToEntity(CityRequest request, CityEntity entity) {
+    public static CityEntity toEntity(CityPatchRequestDto request) {
+        CityEntity entity = new CityEntity();
+
         entity.setName(request.getName());
-        entity.setCoordinates(new CoordinatesEntity(
-                request.getCoordinates().getX(),
-                request.getCoordinates().getY()));
         entity.setArea(request.getArea());
         entity.setPopulation(request.getPopulation());
         entity.setMetersAboveSeaLevel(request.getMetersAboveSeaLevel());
-        entity.setClimate(parseEnum(Climate.class, request.getClimate(), "climate"));
-        entity.setGovernment(parseEnum(Government.class, request.getGovernment(), "government"));
-        entity.setStandardOfLiving(parseNullableEnum(StandardOfLiving.class, request.getStandardOfLiving(), "standardOfLiving"));
-        entity.setGovernor(new HumanEntity(request.getGovernor().getAge()));
+        entity.setClimate(request.getClimate());
+        entity.setGovernment(request.getGovernment());
+        entity.setStandardOfLiving(request.getStandardOfLiving());
+
+        if (request.getCoordinates() != null) {
+            CoordinatesEntity coordinates = new CoordinatesEntity();
+            coordinates.setX(Math.toIntExact(request.getCoordinates().getX()));
+            coordinates.setY(request.getCoordinates().getY());
+            entity.setCoordinates(coordinates);
+        }
+
+        if (request.getGovernor() != null) {
+            HumanEntity governor = new HumanEntity();
+            governor.setAge(Math.toIntExact(request.getGovernor().getAge()));
+            entity.setGovernor(governor);
+        }
+
+        return entity;
     }
 
-    public static CityResponse toResponse(CityEntity entity) {
-        CityResponse response = new CityResponse();
+    public static CityEntity toEntity(CityCreateRequestDto request) {
+        CityEntity entity = new CityEntity();
+
+        entity.setName(request.getName());
+        entity.setArea(request.getArea());
+        entity.setPopulation(request.getPopulation());
+        entity.setMetersAboveSeaLevel(request.getMetersAboveSeaLevel());
+        entity.setClimate(request.getClimate());
+        entity.setGovernment(request.getGovernment());
+        entity.setStandardOfLiving(request.getStandardOfLiving());
+
+        if (request.getCoordinates() != null) {
+            CoordinatesEntity coordinates = new CoordinatesEntity();
+            coordinates.setX(Math.toIntExact(request.getCoordinates().getX()));
+            coordinates.setY(request.getCoordinates().getY());
+            entity.setCoordinates(coordinates);
+        }
+
+        if (request.getGovernor() != null) {
+            HumanEntity governor = new HumanEntity();
+            governor.setAge(Math.toIntExact(request.getGovernor().getAge()));
+            entity.setGovernor(governor);
+        }
+
+        return entity;
+    }
+
+    public static CityResponseDto toResponse(CityEntity entity) {
+        CityResponseDto response = new CityResponseDto();
+
         response.setId(entity.getId());
         response.setCreationDate(entity.getCreationDate().toString());
         response.setName(entity.getName());
-        var coordinates = new ru.nikzarch.firstService.api.Coordinates();
-        coordinates.setX(entity.getCoordinates().getX());
+
+        var coordinates = new CoordinatesDto();
+        coordinates.setX(Long.valueOf(entity.getCoordinates().getX()));
         coordinates.setY(entity.getCoordinates().getY());
         response.setCoordinates(coordinates);
+
         response.setArea(entity.getArea());
         response.setPopulation(entity.getPopulation());
         response.setMetersAboveSeaLevel(entity.getMetersAboveSeaLevel());
-        response.setClimate(entity.getClimate().name());
-        response.setGovernment(entity.getGovernment().name());
-        response.setStandardOfLiving(entity.getStandardOfLiving() == null ? null : entity.getStandardOfLiving().name());
-        var governor = new ru.nikzarch.firstService.api.Human();
-        governor.setAge(entity.getGovernor().getAge());
-        response.setGovernor(governor);
+
+        response.setClimate(
+                entity.getClimate() == null ? null : entity.getClimate()
+        );
+        response.setGovernment(
+                entity.getGovernment() == null ? null : entity.getGovernment()
+        );
+        response.setStandardOfLiving(
+                entity.getStandardOfLiving() == null
+                        ? null
+                        : entity.getStandardOfLiving()
+        );
+
+        if (entity.getGovernor() != null) {
+            var governor = new HumanDto();
+            governor.setAge(Long.valueOf(entity.getGovernor().getAge()));
+            response.setGovernor(governor);
+        } else {
+            response.setGovernor(null);
+        }
+
         return response;
     }
 

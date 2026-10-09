@@ -528,7 +528,7 @@
     </socket-binding-group>
     <deployments>
         <deployment name="firstService-api-1.0.0.war" runtime-name="firstService-api-1.0.0.war">
-            <content sha1="76186c7e1b3107b296e8638e58360f6ffe9ee9a4"/>
+            <content sha1="fccd7073489f2015e43baac9de4155003f81d063"/>
         </deployment>
     </deployments>
 </server>

@@ -14,9 +14,10 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import ru.nikzarch.firstService.api.CityRequest;
-import ru.nikzarch.firstService.api.CityResponse;
-import ru.nikzarch.firstService.api.CityPage;
+import ru.nikzarch.firstService.dto.CityCreateRequestDto;
+import ru.nikzarch.firstService.dto.CityPatchRequestDto;
+import ru.nikzarch.firstService.dto.CityResponseDto;
+import ru.nikzarch.firstService.dto.CityPageDto;
 import ru.nikzarch.firstService.error.ApiException;
 import ru.nikzarch.firstService.model.CityEntity;
 import ru.nikzarch.firstService.service.CityMapper;
@@ -47,15 +48,15 @@ public class CityController {
                               @QueryParam("orderedBy") List<String> orderedBy) {
         int page = parsePositiveInt(pageRaw, 1, "page", false);
         int pageSize = parsePositiveInt(pageSizeRaw, 20, "pageSize", false);
-        CityPage result = queryService.findCities(page, pageSize, filters, orderedBy);
+        CityPageDto result = queryService.findCities(page, pageSize, filters, orderedBy);
         return Response.ok(result).build();
     }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createCity(CityRequest request) {
+    public Response createCity(CityCreateRequestDto request) {
         validate(request);
-        CityResponse created = cityService.create(request);
+        CityResponseDto created = cityService.create(request);
         return Response.status(Response.Status.CREATED).entity(created).build();
     }
 
@@ -69,7 +70,7 @@ public class CityController {
     @Path("/{id}")
     @PATCH
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response updateCity(@PathParam("id") String rawId, CityRequest request) {
+    public Response updateCity(@PathParam("id") String rawId, CityPatchRequestDto request) {
         int id = parsePositiveInt(rawId, 0, "id", true);
         validate(request);
         return Response.ok(cityService.update(id, request)).build();
@@ -95,7 +96,7 @@ public class CityController {
         return Response.ok(CityMapper.toResponse(result)).build();
     }
 
-    private void validate(CityRequest request) {
+    private void validate(CityPatchRequestDto request) {
         if (request == null) {
             throw ApiException.badRequest("Тело запроса обязательно");
         }
@@ -103,7 +104,23 @@ public class CityController {
         if (violations.isEmpty()) return;
 
         List<Map<String, String>> details = new ArrayList<>();
-        for (ConstraintViolation<CityRequest> violation : violations) {
+        for (ConstraintViolation<CityPatchRequestDto> violation : violations) {
+            Map<String, String> detail = new LinkedHashMap<>();
+            detail.put("field", violation.getPropertyPath().toString());
+            detail.put("message", violation.getMessage());
+            details.add(detail);
+        }
+        throw new ApiException(Response.Status.BAD_REQUEST.getStatusCode(), "Некорректный параметр объекта", details);
+    }
+    private void validate(CityCreateRequestDto request) {
+        if (request == null) {
+            throw ApiException.badRequest("Тело запроса обязательно");
+        }
+        var violations = validator.validate(request);
+        if (violations.isEmpty()) return;
+
+        List<Map<String, String>> details = new ArrayList<>();
+        for (ConstraintViolation<CityCreateRequestDto> violation : violations) {
             Map<String, String> detail = new LinkedHashMap<>();
             detail.put("field", violation.getPropertyPath().toString());
             detail.put("message", violation.getMessage());

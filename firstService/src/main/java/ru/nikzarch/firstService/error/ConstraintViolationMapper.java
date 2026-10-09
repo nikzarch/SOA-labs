@@ -6,6 +6,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.ExceptionMapper;
 import jakarta.ws.rs.ext.Provider;
+import ru.nikzarch.firstService.dto.ErrorResponse;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;

@@ -1,4 +1,4 @@
-package ru.nikzarch.firstService.error;
+package ru.nikzarch.firstService.dto;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

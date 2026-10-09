@@ -3,6 +3,8 @@ package ru.nikzarch.firstService.service;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
+import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Order;
@@ -10,55 +12,171 @@ import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import jakarta.transaction.Transactional;
-import ru.nikzarch.firstService.api.CityPage;
+import ru.nikzarch.firstService.dto.CityPageDto;
 import ru.nikzarch.firstService.error.ApiException;
 import ru.nikzarch.firstService.model.CityEntity;
 import ru.nikzarch.firstService.model.StandardOfLiving;
 
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 
 @ApplicationScoped
 public class CityQueryService {
+
+
+
     @PersistenceContext(unitName = "firstServicePU")
     private EntityManager entityManager;
 
     private final FilterParser filterParser = new FilterParser();
 
     @Transactional
-    public CityPage findCities(int page, int pageSize, List<String> filters, List<String> orderedBy) {
+    public CityPageDto findCities(
+            int page,
+            int pageSize,
+            List<String> filters,
+            List<String> orderedBy
+    ) {
         validatePage(page, pageSize);
 
-        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-        CriteriaQuery<CityEntity> query = cb.createQuery(CityEntity.class);
-        Root<CityEntity> root = query.from(CityEntity.class);
-        List<Predicate> predicates = filterParser.parse(filters, root, cb);
-        query.select(root);
-        if (!predicates.isEmpty()) query.where(predicates.toArray(Predicate[]::new));
-        query.orderBy(buildOrders(orderedBy, root, cb));
+        List<FilterParser.ParsedFilter> parsedFilters =
+                filterParser.parse(filters);
 
-        List<CityEntity> entities = entityManager.createQuery(query)
-                .setFirstResult(Math.multiplyExact(page - 1, pageSize))
+        String whereJpql = buildWhereJpql(parsedFilters);
+        String orderByJpql = buildOrderByJpql(orderedBy);
+
+        String dataJpql =
+                "SELECT c FROM CityEntity c"
+                        + whereJpql
+                        + orderByJpql;
+
+        TypedQuery<CityEntity> dataQuery =
+                entityManager.createQuery(dataJpql, CityEntity.class);
+
+        bindFilters(dataQuery, parsedFilters);
+
+        List<CityEntity> entities = dataQuery
+                .setFirstResult((page - 1) * pageSize)
                 .setMaxResults(pageSize)
                 .getResultList();
 
-        CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
-        Root<CityEntity> countRoot = countQuery.from(CityEntity.class);
-        List<Predicate> countPredicates = filterParser.parse(filters, countRoot, cb);
-        countQuery.select(cb.count(countRoot));
-        if (!countPredicates.isEmpty()) countQuery.where(countPredicates.toArray(Predicate[]::new));
-        long total = entityManager.createQuery(countQuery).getSingleResult();
+        String countJpql =
+                "SELECT COUNT(c) FROM CityEntity c"
+                        + whereJpql;
 
-        CityPage result = new CityPage();
+        TypedQuery<Long> countQuery =
+                entityManager.createQuery(countJpql, Long.class);
+
+        bindFilters(countQuery, parsedFilters);
+
+        long total = countQuery.getSingleResult();
+
+        CityPageDto result = new CityPageDto();
         result.setPage(page);
         result.setPageSize(pageSize);
         result.setTotalElements(total);
-        result.setTotalPages(total == 0 ? 0 : (int) ((total + pageSize - 1L) / pageSize));
-        result.setContent(entities.stream().map(CityMapper::toResponse).toList());
+        result.setTotalPages(
+                total == 0 ? 0 : (int) ((total + pageSize - 1L) / pageSize)
+        );
+        result.setContent(
+                entities.stream().map(CityMapper::toResponse).toList()
+        );
+
         return result;
+    }
+
+    private String buildWhereJpql(
+            List<FilterParser.ParsedFilter> filters
+    ) {
+        if (filters.isEmpty()) {
+            return "";
+        }
+
+        StringBuilder where = new StringBuilder(" WHERE ");
+
+        for (int i = 0; i < filters.size(); i++) {
+            if (i > 0) {
+                where.append(" AND ");
+            }
+
+            FilterParser.ParsedFilter filter = filters.get(i);
+            String parameter = "f" + i;
+
+            where.append("(:")
+                    .append(parameter)
+                    .append(" IS NULL OR ")
+                    .append(filter.path())
+                    .append(" ")
+                    .append(filter.operator())
+                    .append(" :")
+                    .append(parameter)
+                    .append(")"); // (:f0 IS NULL OR c.area > :f0)
+        }
+
+        return where.toString();
+    }
+
+    private void bindFilters(
+            Query query,
+            List<FilterParser.ParsedFilter> filters
+    ) {
+        for (int i = 0; i < filters.size(); i++) {
+            query.setParameter("f" + i, filters.get(i).value());
+        }
+    }
+
+    private static final Map<String, String> ORDER_PATHS = Map.ofEntries(
+            Map.entry("id", "c.id"),
+            Map.entry("name", "c.name"),
+            Map.entry("area", "c.area"),
+            Map.entry("population", "c.population"),
+            Map.entry("metersAboveSeaLevel", "c.metersAboveSeaLevel"),
+            Map.entry("coordinates.x", "c.coordinates.x"),
+            Map.entry("coordinates.y", "c.coordinates.y"),
+            Map.entry("governor.age", "c.governor.age"),
+            Map.entry("creationDate", "c.creationDate"),
+            Map.entry("climate", "c.climate"),
+            Map.entry("government", "c.government"),
+            Map.entry("standardOfLiving", "c.standardOfLiving")
+    );
+
+    private String buildOrderByJpql(List<String> orderedBy) {
+        if (orderedBy == null || orderedBy.isEmpty()) {
+            return "";
+        }
+
+        List<String> orders = new ArrayList<>();
+
+        for (String raw : orderedBy) {
+            if (raw == null || raw.isBlank()) {
+                throw ApiException.badRequest(
+                        "Некорректный параметр сортировки"
+                );
+            }
+
+            String[] parts = raw.split(":", 2);
+            String field = parts[0].trim();
+            String direction = parts.length == 2
+                    ? parts[1].trim().toUpperCase(java.util.Locale.ROOT)
+                    : "ASC";
+
+            String path = ORDER_PATHS.get(field);
+
+            if (path == null) {
+                throw ApiException.badRequest(
+                        "Неизвестное поле сортировки: " + field
+                );
+            }
+
+            if (!direction.equals("ASC") && !direction.equals("DESC")) {
+                throw ApiException.badRequest(
+                        "Недопустимое направление сортировки: " + direction
+                );
+            }
+
+            orders.add(path + " " + direction); // C.id DESC
+        }
+
+        return " ORDER BY " + String.join(", ", orders);
     }
 
     @Transactional
@@ -137,41 +255,6 @@ public class CityQueryService {
         };
     }
 
-    private List<Order> buildOrders(List<String> orderedBy, Root<CityEntity> root, CriteriaBuilder cb) {
-        List<Order> result = new ArrayList<>();
-        Set<String> fields = new LinkedHashSet<>();
-        if (orderedBy != null) {
-            for (String raw : orderedBy) {
-                if (raw == null || raw.isBlank()) throw ApiException.badRequest("Некорректный параметр сортировки");
-                String[] parts = raw.split(":", -1);
-                if (parts.length != 2 || parts[0].isBlank() || parts[1].isBlank()) {
-                    throw ApiException.badRequest("Некорректный параметр сортировки: " + raw);
-                }
-                String field = parts[0];
-                String direction = parts[1].toLowerCase(Locale.ROOT);
-                if (!Set.of("asc", "desc").contains(direction)) {
-                    throw ApiException.badRequest("Недопустимое направление сортировки: " + direction);
-                }
-                if (!fields.add(field)) {
-                    throw ApiException.badRequest("Поле сортировки указано более одного раза: " + field);
-                }
-                Path<?> path = sortPath(root, field);
-                result.add("asc".equals(direction) ? cb.asc(path) : cb.desc(path));
-            }
-        }
-        if (!fields.contains("id")) result.add(cb.asc(root.get("id")));
-        return result;
-    }
-
-    private Path<?> sortPath(Root<CityEntity> root, String field) {
-        return switch (field) {
-            case "id", "name", "area", "population", "metersAboveSeaLevel", "creationDate", "climate", "government", "standardOfLiving" -> root.get(field);
-            case "coordinates.x" -> root.get("coordinates").get("x");
-            case "coordinates.y" -> root.get("coordinates").get("y");
-            case "governor.age" -> root.get("governor").get("age");
-            default -> throw ApiException.badRequest("Неизвестное поле сортировки: " + field);
-        };
-    }
 
     private void validatePage(int page, int pageSize) {
         if (page < 1) throw ApiException.badRequest("page должен быть не меньше 1");
