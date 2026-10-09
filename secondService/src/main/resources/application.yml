@@ -1,0 +1,11 @@
+spring:
+  jpa:
+    database: POSTGRESQL
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+  datasource:
+    url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/studs}
+    username: ${POSTGRES_USER:postgres}
+    password: ${POSTGRES_PASS:postgres}
+    driverClassName: org.postgresql.Driver
