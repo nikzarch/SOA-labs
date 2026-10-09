@@ -9,3 +9,6 @@ spring:
     username: ${POSTGRES_USER:postgres}
     password: ${POSTGRES_PASS:postgres}
     driverClassName: org.postgresql.Driver
+
+additionalProps:
+  firstUrl: "localhost:8080/cities/"
