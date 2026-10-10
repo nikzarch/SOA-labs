@@ -31,7 +31,7 @@ import java.util.Map;
 
 @Path("/cities")
 @Produces(MediaType.APPLICATION_JSON)
-public class CityController {
+public class CityResource {
     @Inject
     CityService cityService;
 
