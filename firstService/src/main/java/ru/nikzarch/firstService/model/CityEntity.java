@@ -1,14 +1,12 @@
 package ru.nikzarch.firstService.model;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -29,8 +27,11 @@ public class CityEntity {
     @Column(nullable = false)
     private String name;
 
-    @Embedded
-    private CoordinatesEntity coordinates;
+    @Column(name = "coordinate_x")
+    private Integer coordinateX;
+
+    @Column(name = "coordinate_y", nullable = false)
+    private Double coordinateY;
 
     @Column(nullable = false)
     private Long area;
@@ -53,9 +54,9 @@ public class CityEntity {
     @Column(name = "standard_of_living", length = 32)
     private StandardOfLiving standardOfLiving;
 
-    @Embedded
-    private HumanEntity governor;
+    @Column(name = "governor_age", nullable = false)
+    private Integer governorAge;
 
-    @Column(name = "creation_date", updatable = false)
+    @Column(name = "creation_date", updatable = false, nullable = false)
     private LocalDateTime creationDate = LocalDateTime.now();
 }

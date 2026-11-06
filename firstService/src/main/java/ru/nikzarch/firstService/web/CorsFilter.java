@@ -19,7 +19,9 @@ public class CorsFilter implements ContainerResponseFilter {
                 "Access-Control-Allow-Credentials", "true");
         responseContext.getHeaders().add(
                 "Access-Control-Allow-Headers",
-                "origin, content-type, accept");
+                "origin, content-type, accept, accept-language");
+        responseContext.getHeaders().add(
+                "Access-Control-Expose-Headers", "Content-Language");
         responseContext.getHeaders().add(
                 "Access-Control-Allow-Methods",
                 "GET, POST, PUT, DELETE, PATCH");

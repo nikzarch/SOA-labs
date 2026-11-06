@@ -1,6 +1,8 @@
 package ru.nikzarch.firstService.service;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import ru.nikzarch.firstService.error.ApiException;
+import ru.nikzarch.firstService.error.ErrorCode;
 import ru.nikzarch.firstService.model.Climate;
 import ru.nikzarch.firstService.model.Government;
 import ru.nikzarch.firstService.model.StandardOfLiving;
@@ -9,218 +11,158 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
 
+@ApplicationScoped
 public class FilterParser {
+    private static final Set<String> COMPARISON_OPERATORS = Set.of("equals", "moreThan", "lessThan");
+    private static final Set<String> EQUALS_ONLY = Set.of("equals");
+    private static final Set<String> SPECIAL_TYPES = Set.of("EQUALS", "MIN", "MAX");
+    private static final List<StandardOfLiving> LIVING_ORDER =
+            List.of(StandardOfLiving.NIGHTMARE, StandardOfLiving.HIGH, StandardOfLiving.ULTRA_HIGH);
 
-    public List<ParsedFilter> parse(List<String> rawFilters) {
-        List<ParsedFilter> result = new ArrayList<>();
+    private static final Map<String, Field> FIELDS = Map.ofEntries(
+            Map.entry("id", new Field("c.id", Integer::valueOf, COMPARISON_OPERATORS)),
+            Map.entry("name", new Field("c.name", Function.identity(), COMPARISON_OPERATORS)),
+            Map.entry("coordinates.x", new Field("c.coordinateX", Integer::valueOf, COMPARISON_OPERATORS)),
+            Map.entry("coordinates.y", new Field("c.coordinateY", Double::valueOf, COMPARISON_OPERATORS)),
+            Map.entry("area", new Field("c.area", Long::valueOf, COMPARISON_OPERATORS)),
+            Map.entry("population", new Field("c.population", Long::valueOf, COMPARISON_OPERATORS)),
+            Map.entry("metersAboveSeaLevel", new Field("c.metersAboveSeaLevel", Double::valueOf, COMPARISON_OPERATORS)),
+            Map.entry("climate", new Field("c.climate", Climate::valueOf, EQUALS_ONLY)),
+            Map.entry("government", new Field("c.government", Government::valueOf, EQUALS_ONLY)),
+            Map.entry("standardOfLiving", new Field("c.standardOfLiving", StandardOfLiving::valueOf, EQUALS_ONLY)),
+            Map.entry("governor.age", new Field("c.governorAge", Integer::valueOf, COMPARISON_OPERATORS)),
+            Map.entry("creationDate", new Field("c.creationDate", LocalDateTime::parse, COMPARISON_OPERATORS))
+    );
 
-        if (rawFilters == null) {
-            return result;
+    private static final Map<String, String> SPECIAL_FIELDS = Map.of(
+            "name", "name",
+            "area", "area",
+            "standard-of-living", "standardOfLiving"
+    );
+
+    public List<ParsedFilter> parseFilters(List<String> rawFilters) {
+        if (rawFilters == null || rawFilters.isEmpty()) {
+            return List.of();
         }
-
+        List<ParsedFilter> result = new ArrayList<>(rawFilters.size());
         for (String raw : rawFilters) {
             if (raw == null || raw.isBlank()) {
-                throw ApiException.badRequest(
-                        "Некорректный параметр фильтрации"
-                );
+                throw ApiException.badRequest(ErrorCode.FILTER_INVALID);
             }
 
             String[] parts = raw.split(":", 3);
-
-            if (parts.length != 3
-                    || parts[0].isBlank()
-                    || parts[1].isBlank()
-                    || parts[2].isBlank()) {
-                throw ApiException.badRequest(
-                        "Некорректный параметр фильтрации"
-                );
+            if (parts.length != 3 || parts[0].isBlank() || parts[1].isBlank() || parts[2].isBlank()) {
+                throw ApiException.badRequest(ErrorCode.FILTER_FORMAT);
             }
-
-            result.add(parseOne(
-                    parts[0],
-                    parts[1],
-                    parts[2]
-            ));
+            result.add(parse(parts[0].trim(), parts[1].trim(), parts[2].trim()));
         }
-
-        return result;
+        return List.copyOf(result);
     }
 
-    private ParsedFilter parseOne(
-            String field,
-            String op,
-            String value
-    ) {
-        return switch (field) {
-            case "name" ->
-                    new ParsedFilter(
-                            "c.name",
-                            operator(op, field),
-                            value
-                    );
-
-            case "area" ->
-                    new ParsedFilter(
-                            "c.area",
-                            operator(op, field),
-                            parseLong(value, field)
-                    );
-
-            case "population" ->
-                    new ParsedFilter(
-                            "c.population",
-                            operator(op, field),
-                            parseLong(value, field)
-                    );
-
-            case "metersAboveSeaLevel" ->
-                    new ParsedFilter(
-                            "c.metersAboveSeaLevel",
-                            operator(op, field),
-                            parseDouble(value, field)
-                    );
-
-            case "coordinates.x" ->
-                    new ParsedFilter(
-                            "c.coordinates.x",
-                            operator(op, field),
-                            parseInt(value, field)
-                    );
-
-            case "coordinates.y" ->
-                    new ParsedFilter(
-                            "c.coordinates.y",
-                            operator(op, field),
-                            parseDouble(value, field)
-                    );
-
-            case "governor.age" ->
-                    new ParsedFilter(
-                            "c.governor.age",
-                            operator(op, field),
-                            parseInt(value, field)
-                    );
-
-            case "creationDate" ->
-                    new ParsedFilter(
-                            "c.creationDate",
-                            operator(op, field),
-                            parseDateTime(value, field)
-                    );
-
-            case "climate" ->
-                    enumFilter(
-                            "c.climate", field, op, value, Climate.class
-                    );
-
-            case "government" ->
-                    enumFilter(
-                            "c.government", field, op, value, Government.class
-                    );
-
-            case "standardOfLiving" ->
-                    enumFilter(
-                            "c.standardOfLiving",
-                            field,
-                            op,
-                            value,
-                            StandardOfLiving.class
-                    );
-
-            default -> throw ApiException.badRequest(
-                    "Неизвестное поле фильтра: " + field
-            );
-        };
+    private ParsedFilter parse(String name, String operator, String rawValue) {
+        Field field = requireField(name);
+        if (!field.operators().contains(operator)) {
+            throw ApiException.badRequest(ErrorCode.FILTER_OPERATOR, operator, name);
+        }
+        return new ParsedFilter(field.path(), sqlOperator(operator), convert(field, name, rawValue));
     }
 
-    private String operator(String op, String field) {
-        return switch (op) {
+    public List<ParsedSort> parseSorts(List<String> orderedBy) {
+        if (orderedBy == null || orderedBy.isEmpty()) {
+            return List.of();
+        }
+        List<ParsedSort> result = new ArrayList<>(orderedBy.size());
+        for (String raw : orderedBy) {
+            if (raw == null || raw.isBlank()) {
+                throw ApiException.badRequest(ErrorCode.SORT_INVALID);
+            }
+            String[] parts = raw.split(":", -1);
+            if (parts.length > 2 || parts[0].isBlank()) {
+                throw ApiException.badRequest(ErrorCode.SORT_FORMAT);
+            }
+            String fieldName = parts[0].trim();
+            String direction = parts.length == 1 ? "ASC" : parts[1].trim().toUpperCase(java.util.Locale.ROOT);
+            if (!direction.equals("ASC") && !direction.equals("DESC")) {
+                throw ApiException.badRequest(ErrorCode.SORT_DIRECTION, direction);
+            }
+            result.add(new ParsedSort(requireField(fieldName).path(), direction));
+        }
+        return List.copyOf(result);
+    }
+
+    public ParsedSpecial parseSpecial(String parameter, String rawValue, String type) {
+        String fieldName = parameter == null ? null : SPECIAL_FIELDS.get(parameter);
+        if (fieldName == null) {
+            throw ApiException.badRequest(ErrorCode.SPECIAL_UNKNOWN_PARAMETER, parameter);
+        }
+        if (rawValue == null || rawValue.isBlank() || type == null
+                || !SPECIAL_TYPES.contains(type)) {
+            throw ApiException.badRequest(ErrorCode.SPECIAL_INVALID);
+        }
+        Field field = requireField(fieldName);
+        Object value = convert(field, parameter, rawValue);
+        if ("EQUALS".equals(type)) {
+            return new ParsedSpecial(new ParsedFilter(field.path(), "=", value), "c.id", "ASC");
+        }
+        String direction = "MIN".equals(type) ? "ASC" : "DESC";
+        if (value instanceof StandardOfLiving living) {
+            int boundary = LIVING_ORDER.indexOf(living);
+            List<StandardOfLiving> matching = new ArrayList<>();
+            for (int i = 0; i < LIVING_ORDER.size(); i++) {
+                if ("MIN".equals(type) ? i >= boundary : i <= boundary) {
+                    matching.add(LIVING_ORDER.get(i));
+                }
+            }
+            // Explicit enum ranks are required: the database's lexical order is not meaningful.
+            String rankExpression = "CASE "
+                    + "WHEN c.standardOfLiving = ru.nikzarch.firstService.model.StandardOfLiving.NIGHTMARE THEN 0 "
+                    + "WHEN c.standardOfLiving = ru.nikzarch.firstService.model.StandardOfLiving.HIGH THEN 1 "
+                    + "WHEN c.standardOfLiving = ru.nikzarch.firstService.model.StandardOfLiving.ULTRA_HIGH THEN 2 "
+                    + "ELSE 3 END";
+            return new ParsedSpecial(new ParsedFilter(field.path(), "IN", matching), rankExpression, direction);
+        }
+        String operator = "MIN".equals(type) ? ">=" : "<=";
+        return new ParsedSpecial(new ParsedFilter(field.path(), operator, value), field.path(), direction);
+    }
+
+    private Field requireField(String name) {
+        Field field = FIELDS.get(name);
+        if (field == null) {
+            throw ApiException.badRequest(ErrorCode.FILTER_UNKNOWN_FIELD, name);
+        }
+        return field;
+    }
+
+    private Object convert(Field field, String name, String value) {
+        try {
+            Object converted = field.convertFunction().apply(value);
+            if (converted instanceof Double number && !Double.isFinite(number)) {
+                throw new NumberFormatException();
+            }
+            return converted;
+        } catch (IllegalArgumentException | DateTimeParseException ex) {
+            throw ApiException.badRequest(ErrorCode.FILTER_VALUE, name, value);
+        }
+    }
+
+    private String sqlOperator(String operation) {
+        return switch (operation) {
             case "equals" -> "=";
             case "moreThan" -> ">";
             case "lessThan" -> "<";
-            default -> throw ApiException.badRequest(
-                    "Недопустимая операция " + op + " для поля " + field
-            );
+            default -> throw new IllegalStateException("Unsupported internal operator: " + operation);
         };
     }
 
-    private ParsedFilter enumFilter(
-            String path,
-            String field,
-            String op,
-            String value,
-            Class<? extends Enum<?>> type
-    ) {
-        if (!"equals".equals(op)) {
-            throw ApiException.badRequest(
-                    "Для поля " + field
-                            + " допустима только операция equals"
-            );
-        }
+    private record Field(String path, Function<String, ?> convertFunction, Set<String> operators) {}
 
-        try {
-            Enum<?> parsed = Enum.valueOf(
-                    type.asSubclass(Enum.class),
-                    value
-            );
+    public record ParsedFilter(String path, String operator, Object value) {}
 
-            return new ParsedFilter(path, "=", parsed);
-        } catch (IllegalArgumentException e) {
-            throw ApiException.badRequest(
-                    "Недопустимое значение для поля "
-                            + field + ": " + value
-            );
-        }
-    }
+    public record ParsedSort(String path, String direction) {}
 
-    private Integer parseInt(String value, String field) {
-        try {
-            return Integer.valueOf(value);
-        } catch (NumberFormatException e) {
-            throw ApiException.badRequest(
-                    "Значение поля " + field + " должно быть integer"
-            );
-        }
-    }
-
-    private Long parseLong(String value, String field) {
-        try {
-            return Long.valueOf(value);
-        } catch (NumberFormatException e) {
-            throw ApiException.badRequest(
-                    "Значение поля " + field + " должно быть long"
-            );
-        }
-    }
-
-    private Double parseDouble(String value, String field) {
-        try {
-            return Double.valueOf(value);
-        } catch (NumberFormatException e) {
-            throw ApiException.badRequest(
-                    "Значение поля " + field + " должно быть double"
-            );
-        }
-    }
-
-    private LocalDateTime parseDateTime(
-            String value,
-            String field
-    ) {
-        try {
-            return LocalDateTime.parse(value);
-        } catch (DateTimeParseException e) {
-            throw ApiException.badRequest(
-                    "Дата и время поля " + field
-                            + " должны быть в формате LocalDateTime"
-            );
-        }
-    }
-
-    public record ParsedFilter(
-            String path,
-            String operator,
-            Object value
-    ) {}
+    public record ParsedSpecial(ParsedFilter filter, String sortExpression, String direction) {}
 }

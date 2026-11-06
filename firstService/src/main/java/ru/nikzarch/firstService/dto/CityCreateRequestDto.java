@@ -1,45 +1,45 @@
 package ru.nikzarch.firstService.dto;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.Getter;
 import lombok.Setter;
 import ru.nikzarch.firstService.model.Climate;
 import ru.nikzarch.firstService.model.Government;
 import ru.nikzarch.firstService.model.StandardOfLiving;
 
-@Setter
 @Getter
+@Setter
 public class CityCreateRequestDto {
-
-    @Size(min = 1, message = "Название должно состоять хотя бы из одного символа")
+    @NotNull(message = "{validation.name.required}")
+    @Size(min = 1, message = "{validation.name.required}")
     private String name;
 
     @Valid
+    @NotNull(message = "{validation.coordinates.required}")
     private CoordinatesDto coordinates;
 
-    @Positive(message = "Площадь должно быть положительным числом")
-    @Max(value = Long.MAX_VALUE, message = "А куда мы пишем число которое не влезает в Long")
-    @Min(value = Long.MIN_VALUE, message = "А куда мы пишем число которое не влезает в Long")
+    @NotNull(message = "{validation.area.required}")
+    @Positive(message = "{validation.area.positive}")
     private Long area;
 
-    @Positive(message = "Население должно быть положительным числом")
-    @Max(value = Long.MAX_VALUE, message = "А куда мы пишем число которое не влезает в Long")
-    @Min(value = Long.MIN_VALUE, message = "А куда мы пишем число которое не влезает в Long")
-    private Long population ;
+    @NotNull(message = "{validation.population.required}")
+    @Positive(message = "{validation.population.positive}")
+    private Long population;
 
     private Double metersAboveSeaLevel;
 
+    @NotNull(message = "{validation.climate.required}")
     private Climate climate;
 
+    @NotNull(message = "{validation.government.required}")
     private Government government;
 
     private StandardOfLiving standardOfLiving;
 
     @Valid
+    @NotNull(message = "{validation.governor.required}")
     private HumanDto governor;
-
 }

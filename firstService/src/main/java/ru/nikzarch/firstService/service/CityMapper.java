@@ -1,120 +1,35 @@
 package ru.nikzarch.firstService.service;
 
-import ru.nikzarch.firstService.dto.*;
+import org.mapstruct.BeanMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingConstants;
+import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
+import ru.nikzarch.firstService.dto.CityCreateRequestDto;
+import ru.nikzarch.firstService.dto.CityPatchRequestDto;
+import ru.nikzarch.firstService.dto.CityResponseDto;
 import ru.nikzarch.firstService.model.CityEntity;
-import ru.nikzarch.firstService.model.CoordinatesEntity;
-import ru.nikzarch.firstService.model.HumanEntity;
 
-public class CityMapper {
-    private CityMapper() {
-    }
+@Mapper(componentModel = MappingConstants.ComponentModel.JAKARTA_CDI)
+public interface CityMapper {
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "creationDate", ignore = true)
+    @Mapping(target = "coordinateX", source = "coordinates.x")
+    @Mapping(target = "coordinateY", source = "coordinates.y")
+    @Mapping(target = "governorAge", source = "governor.age")
+    CityEntity toEntity(CityCreateRequestDto request);
 
-    public static CityEntity toEntity(CityPatchRequestDto request) {
-        CityEntity entity = new CityEntity();
+    @Mapping(target = "coordinates.x", source = "coordinateX")
+    @Mapping(target = "coordinates.y", source = "coordinateY")
+    @Mapping(target = "governor.age", source = "governorAge")
+    CityResponseDto toResponse(CityEntity entity);
 
-        entity.setName(request.getName());
-        entity.setArea(request.getArea());
-        entity.setPopulation(request.getPopulation());
-        entity.setMetersAboveSeaLevel(request.getMetersAboveSeaLevel());
-        entity.setClimate(request.getClimate());
-        entity.setGovernment(request.getGovernment());
-        entity.setStandardOfLiving(request.getStandardOfLiving());
-
-        if (request.getCoordinates() != null) {
-            CoordinatesEntity coordinates = new CoordinatesEntity();
-            coordinates.setX(Math.toIntExact(request.getCoordinates().getX()));
-            coordinates.setY(request.getCoordinates().getY());
-            entity.setCoordinates(coordinates);
-        }
-
-        if (request.getGovernor() != null) {
-            HumanEntity governor = new HumanEntity();
-            governor.setAge(Math.toIntExact(request.getGovernor().getAge()));
-            entity.setGovernor(governor);
-        }
-
-        return entity;
-    }
-
-    public static CityEntity toEntity(CityCreateRequestDto request) {
-        CityEntity entity = new CityEntity();
-
-        entity.setName(request.getName());
-        entity.setArea(request.getArea());
-        entity.setPopulation(request.getPopulation());
-        entity.setMetersAboveSeaLevel(request.getMetersAboveSeaLevel());
-        entity.setClimate(request.getClimate());
-        entity.setGovernment(request.getGovernment());
-        entity.setStandardOfLiving(request.getStandardOfLiving());
-
-        if (request.getCoordinates() != null) {
-            CoordinatesEntity coordinates = new CoordinatesEntity();
-            coordinates.setX(Math.toIntExact(request.getCoordinates().getX()));
-            coordinates.setY(request.getCoordinates().getY());
-            entity.setCoordinates(coordinates);
-        }
-
-        if (request.getGovernor() != null) {
-            HumanEntity governor = new HumanEntity();
-            governor.setAge(Math.toIntExact(request.getGovernor().getAge()));
-            entity.setGovernor(governor);
-        }
-
-        return entity;
-    }
-
-    public static CityResponseDto toResponse(CityEntity entity) {
-        CityResponseDto response = new CityResponseDto();
-
-        response.setId(entity.getId());
-        response.setCreationDate(entity.getCreationDate().toString());
-        response.setName(entity.getName());
-
-        var coordinates = new CoordinatesDto();
-        coordinates.setX(Long.valueOf(entity.getCoordinates().getX()));
-        coordinates.setY(entity.getCoordinates().getY());
-        response.setCoordinates(coordinates);
-
-        response.setArea(entity.getArea());
-        response.setPopulation(entity.getPopulation());
-        response.setMetersAboveSeaLevel(entity.getMetersAboveSeaLevel());
-
-        response.setClimate(
-                entity.getClimate() == null ? null : entity.getClimate()
-        );
-        response.setGovernment(
-                entity.getGovernment() == null ? null : entity.getGovernment()
-        );
-        response.setStandardOfLiving(
-                entity.getStandardOfLiving() == null
-                        ? null
-                        : entity.getStandardOfLiving()
-        );
-
-        if (entity.getGovernor() != null) {
-            var governor = new HumanDto();
-            governor.setAge(Long.valueOf(entity.getGovernor().getAge()));
-            response.setGovernor(governor);
-        } else {
-            response.setGovernor(null);
-        }
-
-        return response;
-    }
-
-    private static <E extends Enum<E>> E parseEnum(Class<E> type, String value, String field) {
-        if (value == null) {
-            throw new IllegalArgumentException(field + " must not be null");
-        }
-        try {
-            return Enum.valueOf(type, value);
-        } catch (IllegalArgumentException ex) {
-            throw new IllegalArgumentException("Недопустимое значение для поля " + field + ": " + value, ex);
-        }
-    }
-
-    private static <E extends Enum<E>> E parseNullableEnum(Class<E> type, String value, String field) {
-        if (value == null) return null;
-        return parseEnum(type, value, field);
-    }
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "creationDate", ignore = true)
+    @Mapping(target = "coordinateX", source = "coordinates.x")
+    @Mapping(target = "coordinateY", source = "coordinates.y")
+    @Mapping(target = "governorAge", source = "governor.age")
+    void updateEntity(CityPatchRequestDto request, @MappingTarget CityEntity entity);
 }
