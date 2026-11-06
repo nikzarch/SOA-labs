@@ -1,2 +1,5 @@
 additionalProps:
   firstUrl: "${FIRST_SERVICE_URL:http://localhost:8080/firstService-api/cities}"
+
+app:
+  locale: "${APP_LOCALE:ru}"

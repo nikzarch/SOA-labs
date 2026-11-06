@@ -48,13 +48,13 @@ public class SpecialOperationsController {
                     .build().encode().toUri();
             page = restTemplate.getForObject(uri, CityPage.class);
         } catch (RestClientException | IllegalArgumentException exception) {
-            throw new UnreachableServiceException("Первый веб-сервис недоступен", exception);
+            throw new UnreachableServiceException("error.first-service.unavailable", exception);
         }
         if (page == null || page.content() == null) {
-            throw new UnreachableServiceException("Первый веб-сервис вернул некорректный ответ");
+            throw new UnreachableServiceException("error.first-service.invalid-response");
         }
         if (page.content().isEmpty()) {
-            throw new CitesEmptyException("В коллекции отсутствуют города");
+            throw new CitesEmptyException("error.cities.empty");
         }
         var city = page.content().getFirst();
         double length = specialOperationsService.calculateDistanceToACity(city.coordinates());
