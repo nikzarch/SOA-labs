@@ -1,0 +1,7 @@
+/subsystem=elytron/key-store=applicationKS:load()
+/subsystem=elytron/key-manager=applicationKM:init()
+if (outcome != success) of /subsystem=undertow/server=default-server/https-listener=https:read-resource
+    /subsystem=undertow/server=default-server/https-listener=https:add(socket-binding=https,ssl-context=applicationSSC,enable-http2=true)
+end-if
+/subsystem=elytron/server-ssl-context=applicationSSC:write-attribute(name=protocols,value=["TLSv1.2","TLSv1.3"])
+reload

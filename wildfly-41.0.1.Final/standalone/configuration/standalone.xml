@@ -360,7 +360,7 @@
                     </key-manager>
                 </key-managers>
                 <server-ssl-contexts>
-                    <server-ssl-context name="applicationSSC" key-manager="applicationKM"/>
+                    <server-ssl-context name="applicationSSC" key-manager="applicationKM" protocols="TLSv1.2 TLSv1.3"/>
                 </server-ssl-contexts>
             </tls>
         </subsystem>
@@ -479,6 +479,7 @@
             <buffer-cache name="default"/>
             <server name="default-server">
                 <http-listener name="default" socket-binding="http" redirect-socket="https" enable-http2="true"/>
+                <https-listener name="https" socket-binding="https" ssl-context="applicationSSC" enable-http2="true"/>
                 <host name="default-host" alias="localhost">
                     <location name="/" handler="welcome-content"/>
                     <http-invoker http-authentication-factory="application-http-authentication"/>

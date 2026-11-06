@@ -11,3 +11,7 @@
 .idea/
 
 **/build/
+**/node_modules/
+frontend/dist/
+
+.gradle/
