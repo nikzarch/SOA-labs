@@ -57,19 +57,27 @@ public class CityQueryService {
 
     @Transactional
     public CityEntity findByParameter(String parameter, String value, String type) {
-        FilterParser.ParsedSpecial special = parser.parseSpecial(parameter, value, type);
-        List<FilterParser.ParsedFilter> filters = List.of(special.filter());
+        FilterParser.ParsedSpecial special =
+                parser.parseSpecial(parameter, value, type);
+
+        List<FilterParser.ParsedFilter> filters =
+                List.of(special.filter());
+
         String jpql =
                 "SELECT c FROM CityEntity c"
                         + whereClause(filters)
-                        + " ORDER BY "
-                        + special.sortExpression()
-                        + " "
-                        + special.direction()
-                        + ", c.id ASC";
-        TypedQuery<CityEntity> query = entityManager.createQuery(jpql, CityEntity.class);
+                        + " ORDER BY c.id ASC";
+
+        TypedQuery<CityEntity> query =
+                entityManager.createQuery(jpql, CityEntity.class);
+
         bind(query, filters);
-        return query.setMaxResults(1).getResultStream().findFirst().orElse(null);
+
+        return query
+                .setMaxResults(1)
+                .getResultStream()
+                .findFirst()
+                .orElse(null);
     }
 
     @Transactional

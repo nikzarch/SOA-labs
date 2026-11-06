@@ -96,37 +96,65 @@ public class FilterParser {
 
     public ParsedSpecial parseSpecial(String parameter, String rawValue, String type) {
         String fieldName = parameter == null ? null : SPECIAL_FIELDS.get(parameter);
+
         if (fieldName == null) {
-            throw ApiException.badRequest(ErrorCode.SPECIAL_UNKNOWN_PARAMETER, parameter);
+            throw ApiException.badRequest(
+                    ErrorCode.SPECIAL_UNKNOWN_PARAMETER,
+                    parameter
+            );
         }
-        if (rawValue == null || rawValue.isBlank() || type == null
-                || !SPECIAL_TYPES.contains(type)) {
+
+        if (rawValue == null || rawValue.isBlank()
+                || type == null || !SPECIAL_TYPES.contains(type)) {
             throw ApiException.badRequest(ErrorCode.SPECIAL_INVALID);
         }
+
         Field field = requireField(fieldName);
         Object value = convert(field, parameter, rawValue);
+
         if ("EQUALS".equals(type)) {
-            return new ParsedSpecial(new ParsedFilter(field.path(), "=", value), "c.id", "ASC");
+            return new ParsedSpecial(
+                    new ParsedFilter(field.path(), "=", value),
+                    "c.id",
+                    "ASC"
+            );
         }
-        String direction = "MIN".equals(type) ? "ASC" : "DESC";
+
         if (value instanceof StandardOfLiving living) {
             int boundary = LIVING_ORDER.indexOf(living);
+
             List<StandardOfLiving> matching = new ArrayList<>();
+
             for (int i = 0; i < LIVING_ORDER.size(); i++) {
-                if ("MIN".equals(type) ? i >= boundary : i <= boundary) {
+                boolean matches = "MIN".equals(type)
+                        ? i > boundary
+                        : i < boundary;
+
+                if (matches) {
                     matching.add(LIVING_ORDER.get(i));
                 }
             }
-            // Explicit enum ranks are required: the database's lexical order is not meaningful.
-            String rankExpression = "CASE "
-                    + "WHEN c.standardOfLiving = ru.nikzarch.firstService.model.StandardOfLiving.NIGHTMARE THEN 0 "
-                    + "WHEN c.standardOfLiving = ru.nikzarch.firstService.model.StandardOfLiving.HIGH THEN 1 "
-                    + "WHEN c.standardOfLiving = ru.nikzarch.firstService.model.StandardOfLiving.ULTRA_HIGH THEN 2 "
-                    + "ELSE 3 END";
-            return new ParsedSpecial(new ParsedFilter(field.path(), "IN", matching), rankExpression, direction);
+
+            if (matching.isEmpty()) {
+                throw ApiException.notFound(
+                        ErrorCode.MATCHING_CITY_NOT_FOUND
+                );
+            }
+
+            return new ParsedSpecial(
+                    new ParsedFilter(field.path(), "IN", matching),
+                    "c.id",
+                    "ASC"
+            );
         }
-        String operator = "MIN".equals(type) ? ">=" : "<=";
-        return new ParsedSpecial(new ParsedFilter(field.path(), operator, value), field.path(), direction);
+
+        String operator = "MIN".equals(type) ? ">" : "<";
+
+        return new ParsedSpecial(
+                new ParsedFilter(field.path(), operator, value),
+                "c.id",
+                "ASC"
+        );
     }
 
     private Field requireField(String name) {

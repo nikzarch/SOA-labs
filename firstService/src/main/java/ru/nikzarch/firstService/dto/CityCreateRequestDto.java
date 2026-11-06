@@ -14,7 +14,7 @@ import ru.nikzarch.firstService.model.StandardOfLiving;
 @Setter
 public class CityCreateRequestDto {
     @NotNull(message = "{validation.name.required}")
-    @Size(min = 1, message = "{validation.name.required}")
+    @Size(min = 1, max = 255, message = "{validation.name.required}")
     private String name;
 
     @Valid
