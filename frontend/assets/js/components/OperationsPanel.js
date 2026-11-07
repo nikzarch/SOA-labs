@@ -24,7 +24,7 @@ function CitySearch({ search, setSearch, onSubmit }) {
         value: search.value,
         onChange: event => setSearch(current => ({ ...current, value: event.target.value })),
       }), 'full')),
-    h('button', { type: 'submit', className: 'secondary' }, 'Найти город'));
+    h('button', { type: 'submit', className: 'secondary search-submit' }, 'Найти город'));
 }
 
 function RouteCalculator({ results, onCalculate }) {

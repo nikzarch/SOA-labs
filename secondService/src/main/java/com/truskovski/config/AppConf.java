@@ -1,15 +1,15 @@
 package com.truskovski.config;
 
+import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.MessageSource;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.servlet.LocaleResolver;
-import org.springframework.web.servlet.i18n.FixedLocaleResolver;
+import org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.List;
 import java.util.Locale;
 
 @Configuration
@@ -25,8 +25,11 @@ public class AppConf {
     }
 
     @Bean
-    public LocaleResolver localeResolver(@Value("${app.locale:ru}") String languageTag) {
-        return new FixedLocaleResolver(Locale.forLanguageTag(languageTag));
+    public LocaleResolver localeResolver() {
+        var resolver = new AcceptHeaderLocaleResolver();
+        resolver.setSupportedLocales(List.of(Locale.forLanguageTag("ru"), Locale.ENGLISH));
+        resolver.setDefaultLocale(Locale.forLanguageTag("ru"));
+        return resolver;
     }
 
     @Bean

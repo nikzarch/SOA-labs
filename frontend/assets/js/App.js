@@ -4,8 +4,10 @@ import { createApi } from './api.js';
 import { EMPTY_CITY, INITIAL_FILTER, INITIAL_SORT } from './constants.js';
 import { CitiesPanel } from './components/CitiesPanel.js';
 import { CityEditor } from './components/CityEditor.js';
+import { CityLookup } from './components/CityLookup.js';
 import { OperationsPanel } from './components/OperationsPanel.js';
 import { DeleteDialog, Toast } from './components/Notifications.js';
+import { CityDetailsDialog } from './components/CityDetailsDialog.js';
 
 const { useEffect, useState } = React;
 const api = createApi();
@@ -30,7 +32,11 @@ export function App() {
 
   const [city, setCity] = useState(EMPTY_CITY());
   const [editingId, setEditingId] = useState(null);
+  const [editorMode, setEditorMode] = useState(null);
+  const [foundCity, setFoundCity] = useState(null);
   const [lookupId, setLookupId] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [formError, setFormError] = useState('');
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState('');
@@ -69,22 +75,26 @@ export function App() {
     return () => window.clearInterval(timer);
   }, [page, pageSize, filters, sorts]);
 
-  async function runAction(action) {
+  async function runAction(action, onError) {
     if (busy) return;
     setBusy(true);
     try {
       return await action();
     } catch (error) {
-      notify(error.message || 'Ошибка запроса');
+      if (onError) onError(error);
+      else notify(error.message || 'Ошибка запроса');
     } finally {
       setBusy(false);
     }
   }
 
   function resetEditor() {
+    setEditorMode(null);
     setEditingId(null);
     setLookupId('');
     setCity(EMPTY_CITY());
+    setFieldErrors({});
+    setFormError('');
   }
 
   async function openCity(id) {
@@ -92,14 +102,37 @@ export function App() {
     await runAction(async () => {
       const { data } = await api.get(id);
       setEditingId(data.id);
+      setEditorMode('edit');
       setLookupId(data.id);
       setCity(cityToForm(data));
-      document.getElementById('editor')?.scrollIntoView({ behavior: 'smooth' });
+      setFieldErrors({});
+      setFormError('');
     });
+  }
+
+  async function findCityById(id) {
+    if (!id) return;
+    await runAction(async () => {
+      const { data } = await api.get(id);
+      setFoundCity(data);
+    });
+  }
+
+  function editFoundCity() {
+    if (!foundCity) return;
+    setEditingId(foundCity.id);
+    setLookupId(foundCity.id);
+    setCity(cityToForm(foundCity));
+    setFieldErrors({});
+    setFormError('');
+    setFoundCity(null);
+    setEditorMode('edit');
   }
 
   async function saveCity(event) {
     event.preventDefault();
+    setFieldErrors({});
+    setFormError('');
     const payload = {
       name: city.name.trim(),
       coordinates: { x: Number(city.x), y: Number(city.y) },
@@ -113,7 +146,7 @@ export function App() {
     };
 
     await runAction(async () => {
-      const result = editingId
+      const result = editorMode === 'edit'
         ? await api.update(editingId, payload)
         : await api.create(payload);
       if (result.data) {
@@ -121,7 +154,24 @@ export function App() {
         setLookupId(result.data.id);
       }
       await loadCities();
+      resetEditor();
       notify(editingId ? 'Изменения сохранены' : 'Город создан');
+    }, error => {
+      const fieldAliases = {
+        'coordinates.x': 'x',
+        'coordinates.y': 'y',
+        'governor.age': 'age',
+      };
+      const details = Array.isArray(error.data?.details) ? error.data.details : [];
+      const nextErrors = Object.fromEntries(details
+        .filter(detail => detail?.field && detail?.message)
+        .map(detail => [fieldAliases[detail.field] || detail.field, detail.message]));
+
+      setFieldErrors(nextErrors);
+      setFormError(error.data?.message || error.message || 'Не удалось сохранить город');
+      if (!Object.keys(nextErrors).length) {
+        notify(`HTTP ${error.status || 'ошибка'}: ${error.data?.message || error.message || 'Не удалось сохранить город'}`);
+      }
     });
   }
 
@@ -132,6 +182,7 @@ export function App() {
 
     await runAction(async () => {
       await api.remove(id);
+      if (String(foundCity?.id) === String(id)) setFoundCity(null);
       if (String(editingId) === String(id)) resetEditor();
       await loadCities();
       notify('Город удалён');
@@ -151,8 +202,11 @@ export function App() {
 
       if (!result.data) { notify('Город не найден'); return; }
       setEditingId(result.data.id);
+      setEditorMode('edit');
       setLookupId(result.data.id);
       setCity(cityToForm(result.data));
+      setFieldErrors({});
+      setFormError('');
     });
   }
 
@@ -168,8 +222,11 @@ export function App() {
   }
 
   function startNewCity() {
-    resetEditor();
-    document.getElementById('editor')?.scrollIntoView({ behavior: 'smooth' });
+    setEditingId(null);
+    setCity(EMPTY_CITY());
+    setFieldErrors({});
+    setFormError('');
+    setEditorMode('create');
   }
 
   async function changePage(nextPage) {
@@ -193,21 +250,39 @@ export function App() {
         onOpenCity: openCity,
         onDeleteCity: setDeleteTarget,
         onNewCity: startNewCity,
+        
       }),
-      h('div', { className: 'columns' },
-        h(CityEditor, {
-          city, editingId, lookupId, setLookupId, onCityChange: setCity,
-          onOpen: openCity, onSubmit: saveCity, onReset: resetEditor,
-          onDelete: setDeleteTarget,
-        }),
+      h('div', { className: 'operations-layout' },
+        h('section', { className: 'panel lookup-panel' },
+          h(CityLookup, { lookupId, setLookupId, onFind: findCityById, onDelete: setDeleteTarget })),
         h(OperationsPanel, {
           search, setSearch, onSearch: searchCity,
           routeResults, onCalculateRoute: calculateRoute,
-        }))),
+        })),
+      h(CityEditor, {
+        city, editingId, editorMode, fieldErrors, formError,
+        onCityChange: setCity,
+        onClearFieldError: name => {
+          setFieldErrors(current => {
+            if (!current[name]) return current;
+            const next = { ...current };
+            delete next[name];
+            return next;
+          });
+          setFormError('');
+        },
+        onSubmit: saveCity, onReset: resetEditor,
+      }),
+    ),
     h(Toast, { message: toast }),
     h(DeleteDialog, {
       cityId: deleteTarget, busy,
       onCancel: () => setDeleteTarget(null),
       onConfirm: deleteCity,
+    }),
+    h(CityDetailsDialog, {
+      city: foundCity,
+      onClose: () => setFoundCity(null),
+      onEdit: editFoundCity,
     }));
 }

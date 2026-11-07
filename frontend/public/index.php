@@ -86,6 +86,11 @@ function proxyWithStreams(string $url, string $method, array $headers, string $c
 function proxyRequest(string $url, string $forwardQuery, string $caFile): void
 {
     $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
+    $methodOverride = strtoupper((string) ($_GET['_method'] ?? ''));
+    if ($method === 'POST' && in_array($methodOverride, ['PATCH', 'DELETE'], true)) {
+        $method = $methodOverride;
+    }
+
     if (!in_array($method, ['GET', 'POST', 'PATCH', 'DELETE'], true)) {
         header('Allow: GET, POST, PATCH, DELETE');
         sendJsonError(405, 'Метод не поддерживается.');
@@ -120,7 +125,7 @@ if ($proxyService !== null) {
     $forwardQueryParts = [];
     foreach (explode('&', $_SERVER['QUERY_STRING'] ?? '') as $queryPart) {
         $key = urldecode(explode('=', $queryPart, 2)[0]);
-        if ($key !== 'proxy' && $key !== 'path' && $key !== 'debug' && $queryPart !== '') {
+        if ($key !== 'proxy' && $key !== 'path' && $key !== 'debug' && $key !== '_method' && $queryPart !== '') {
             $forwardQueryParts[] = $queryPart;
         }
     }

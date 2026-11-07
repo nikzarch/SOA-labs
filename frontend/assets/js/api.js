@@ -16,8 +16,12 @@ export function createApi(fetcher = globalThis.fetch) {
     url.searchParams.set('path', apiPath);
     new URLSearchParams(rawQuery).forEach((value, key) => url.searchParams.append(key, value));
 
+    const usePostOverride = method === 'PATCH' || method === 'DELETE';
+    const transportMethod = usePostOverride ? 'POST' : method;
+    if (usePostOverride) url.searchParams.set('_method', method);
+
     const response = await fetcher(`${url.pathname}${url.search}`, {
-      method,
+      method: transportMethod,
       headers: {
         Accept: 'application/json',
         ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
