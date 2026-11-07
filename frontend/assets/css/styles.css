@@ -228,11 +228,11 @@ th:nth-child(3) { width: 8%; }
 th:nth-child(4),
 th:nth-child(5),
 th:nth-child(6) { width: 7%; }
-th:nth-child(7),
+th:nth-child(7) { width: 10%; }
 th:nth-child(8) { width: 9%; }
 th:nth-child(9) { width: 9%; }
 th:nth-child(10) { width: 8%; }
-th:nth-child(11) { width: 10%; }
+th:nth-child(11) { width: 9%; }
 th:nth-child(12) { width: 12%; }
 
 tbody tr:last-child td {
@@ -368,6 +368,7 @@ tbody tr:last-child td {
 
 .route-card {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
@@ -375,6 +376,7 @@ tbody tr:last-child td {
 }
 
 .route-card strong {
+  flex: 1 1 220px;
   font-size: 13px;
 }
 
@@ -417,8 +419,8 @@ tbody tr:last-child td {
   z-index: 25;
 }
 
-.editor-modal {
-  width: min(1060px, 100%);
+.modal.editor-modal {
+  width: min(1378px, 100%);
   padding: 20px 24px;
 }
 
