@@ -20,44 +20,15 @@ import org.springframework.web.util.UriComponentsBuilder;
 @RequiredArgsConstructor
 public class SpecialOperationsController {
 
-    private final RestTemplate restTemplate;
-
-    private final SpecialOperationsService specialOperationsService;
-
-    @Value("${additionalProps.firstUrl}")
-    private String firstServiceUrl;
+    private final SpecialOperationsService  specialOperationsService;
 
     @GetMapping("/calculate/to-largest")
     public ResponseEntity<RouteLength> routeToLargest() {
-        return calculateRoute("area");
+        return specialOperationsService.calculateRoute("area");
     }
 
     @GetMapping("/calculate/to-newest")
     public ResponseEntity<RouteLength> routeToNewest() {
-        return calculateRoute("creationDate");
-    }
-
-    private ResponseEntity<RouteLength> calculateRoute(String sortField) {
-        CityPage page;
-        try {
-            var uri = UriComponentsBuilder.fromUriString(firstServiceUrl)
-                    .queryParam("page", 1)
-                    .queryParam("pageSize", 1)
-                    .queryParam("orderedBy", sortField + ":desc")
-                    .queryParam("orderedBy", "id:asc")
-                    .build().encode().toUri();
-            page = restTemplate.getForObject(uri, CityPage.class);
-        } catch (RestClientException | IllegalArgumentException exception) {
-            throw new UnreachableServiceException("error.first-service.unavailable", exception);
-        }
-        if (page == null || page.content() == null) {
-            throw new UnreachableServiceException("error.first-service.invalid-response");
-        }
-        if (page.content().isEmpty()) {
-            throw new CitesEmptyException("error.cities.empty");
-        }
-        var city = page.content().getFirst();
-        double length = specialOperationsService.calculateDistanceToACity(city.coordinates());
-        return ResponseEntity.ok(new RouteLength(length));
+        return specialOperationsService.calculateRoute("creationDate");
     }
 }
